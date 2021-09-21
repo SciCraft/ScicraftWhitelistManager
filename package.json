@@ -1,0 +1,25 @@
+{
+  "name": "scicraft_whitelist_manager",
+  "version": "0.0.4",
+  "description": "SciCraft Discord whitelisting bot",
+  "main": "Main.js",
+  "scripts": {
+    "start": "node Main.js",
+    "stop": "pkill --signal SIGINT SCI"
+  },
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "js-yaml": "^4.1.0",
+    "minecraft-protocol": "^1.22.0",
+    "mojang-api": "^0.0.2",
+    "sqlite3": "^5.0.2",
+    "yggdrasil": "^1.5.2"
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "repository": {},
+  "license": "MIT",
+  "keywords": [],
+  "author": "Fx Morin"
+}

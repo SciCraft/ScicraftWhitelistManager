@@ -1,0 +1,252 @@
+---
+token:
+prefix: "&"
+method: bot
+servers:
+  scicraft_Snapshit:
+    ip: 127.0.0.1:25565
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+  patreon_S:
+    ip: 127.0.0.1:25566
+    isCreative: false
+    shouldOp: false
+  patreon_C:
+    ip: 127.0.0.1:25567
+    isCreative: true
+    shouldOp: true
+    opRole: patreonT2
+  patreon_S_Sky:
+    ip: 127.0.0.1:25568
+    isCreative: false
+    shouldOp: false
+  patreon_C_Sky:
+    ip: 127.0.0.1:25569
+    isCreative: true
+    shouldOp: true
+    opRole: patreonT2
+  scicraft_S:
+    ip: 127.0.0.1:25570
+    isCreative: false
+    shouldOp: false
+  scicraft_S_Copy:
+    ip: totallynotanexample.com
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+  scicraft_C:
+    ip: totallynotanexample.com:65534
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+  scicraft_C_16:
+    ip: 8.8.8.8
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+  scicraft_Aux_1:
+    ip: 8.8.4.4
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+  scicraft_Aux_2:
+    ip: scicraft.tech:42069
+    isCreative: true
+    shouldOp: true
+    opRole: Scicraft
+roles:
+  Scicraft:
+    channel: "-1"
+    roleId: '889983382262538291'
+    servers:
+    - scicraft_S
+    - scicraft_S_Copy
+    - scicraft_C
+    - scicraft_C_16
+    - scicraft_Aux_1
+    - scicraft_Aux_2
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 100
+  patreonT6:
+    channel: '889981423266725900'
+    roleId: '889983662932779078'
+    servers:
+    - scicraft_S_Copy
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 4
+  patreonT5:
+    channel: '889981423266725900'
+    roleId: '889983629978120223'
+    servers:
+    - scicraft_S_Copy
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 3
+  patreonT4:
+    channel: '889981423266725900'
+    roleId: '889983563699744800'
+    servers:
+    - scicraft_S_Copy
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 3
+  patreonT3:
+    channel: '889981423266725900'
+    roleId: '889983525208608849'
+    servers:
+    - scicraft_S_Copy
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 3
+  patreonT2:
+    channel: '889981423266725900'
+    roleId: '889983415766614026'
+    servers:
+    - patreon_S
+    - patreon_C
+    - patreon_S_Sky
+    - patreon_C_Sky
+    accounts: 1
+commands:
+  add:
+    require: patreonT2
+    adminOnly: false
+    description: Add command allows players to whitelist their minecraft account on all servers they have perms for!
+    usage: add <mcUsername> [<quietly>] [<serverName>] [<force>]
+    enabled: true
+  remove:
+    require: patreonT2
+    adminOnly: false
+    description: Remove command allows players to remove their minecraft account from all servers they are whitelisted in
+    usage: remove <mcUsername> [<quietly>] [<serverName>] [<force>]
+    enabled: true
+  info:
+    require: patreonT2
+    adminOnly: false
+    description: Info command allows admins to get info on discord users or minecraft accounts
+    usage: info {mcUsername|discordMention}
+    enabled: true
+  list:
+    require: patreonT2
+    adminOnly: false
+    description: List command lists information ;)
+    usage: list <servers>
+    enabled: false
+  kick:
+    require: Scicraft
+    adminOnly: true
+    description: Kick command allows admins to kick users from all servers or a single one
+    usage: kick <mcUsername> [<quietly>] [<serverName>]
+    enabled: true
+  ban:
+    require: Scicraft
+    adminOnly: true
+    description: Ban command allows admins to ban users from all servers or a single one
+    usage: ban <mcUsername> [<quietly>] [<serverName>]
+    enabled: true
+  pardon:
+    require: Scicraft
+    adminOnly: true
+    description: Pardon command allows admins to pardon banned users from all servers or a single one
+    usage: pardon <mcUsername> [<quietly>] [<serverName>]
+    enabled: true
+  op:
+    require: Scicraft
+    adminOnly: true
+    description: Op command allows admins to op users from all servers or a single one
+    usage: op <mcUsername> [<quietly>] [<serverName>]
+    enabled: true
+  bind:
+    require: Scicraft
+    adminOnly: false
+    description: Bind command allows admins to bind a minecraft account to a discord user while also whitelisting them
+    usage: bind {<discordMention> <mcUsername> | <mcUsername> <discordMention>}
+    enabled: false
+  execute:
+    require: Scicraft
+    adminOnly: true
+    description: Execute command allows admins to execute commands/chat directly on all servers or a single one
+    usage: execute <serverName> <command>
+    enabled: true
+  shutdown:
+    require: Scicraft
+    adminOnly: true
+    description: Shutdown command allows admins to piss Skyrising off at any time
+    usage: shutdown [<serverName>]
+    enabled: false
+  admin:
+    require: Scicraft
+    adminOnly: true
+    description: Admin command should only be used by people who absolutly know what they are doing.
+    usage: admin {reload|shutdown}
+    enabled: false
+options:
+  verbose: true
+  debugMode: true
+  ReWhitelistAutomatically: true
+  WhitelistAutomaticallyQuietly: false
+  joiningExecutionDelay: 500
+  exitingExecutionDelay: 1000
+  disableRoleChangeChecks: false
+  ownerIsAnAdmin: false
+actions:
+  Whitelist:
+    log: true
+    cmd: "/whitelist add %s"
+    msg: 'Added: %s to the whitelist'
+    col: "#00DD00"
+    inf: was whitelisted on
+  Unwhitelist:
+    log: true
+    cmd: "/whitelist remove %s"
+    msg: 'Removed: %s from the whitelist'
+    col: "#DD0000"
+    inf: was un-whitelisted from
+  Kick:
+    log: false
+    cmd: "/kick %s"
+    msg: 'Kicked: %s'
+    col: "#880000"
+    inf: was kicked on
+  Ban:
+    log: true
+    cmd: "/ban %s"
+    msg: 'Banned: %s'
+    col: "#FF0000"
+    inf: was banned on
+  Pardon:
+    log: true
+    cmd: "/pardon %s"
+    msg: 'Pardoned: %s'
+    col: "#00FF00"
+    inf: was pardoned on
+  Op:
+    log: true
+    cmd: "/op %s"
+    msg: 'Opped: %s'
+    col: "#8A2BE2"
+    inf: was opped on
+  Custom:
+    log: false
+    col: "#2222EE"
+    inf: did custom operation on
+bot:
+  email:
+  password:
+guildId: '889981422570459206'
+adminRole: '889983267258925097'
+botTestingChannel: '889984919831457873'
+whitelistLog: '889984973464027177'
