@@ -511,6 +511,12 @@ discordClient.on("ready", () => {
             GuildOwner = guild.ownerID;
         });
     }
+    if (Config.options.sendMessageOnStartup) {
+        if (Config.whitelistLog) {
+            const logEmbed = new Discord.MessageEmbed().setColor("#00FF00").setTitle("Startup").setDescription("WhitelistManager just started!");
+            return {msg: discordClient.channels.fetch(whitelistLog).then(channel => {return channel.send(logEmbed);}), desc: description};
+        }
+    }
 
     pingEveryHour(); //Do at startup
     setInterval(pingEveryHour, 3600000); // Will check if anyone is waiting, if they are then it will ping to see if the server is online

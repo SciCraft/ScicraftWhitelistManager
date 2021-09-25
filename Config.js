@@ -37,7 +37,8 @@ const options = {
     joiningExecutionDelay: config.options.joiningExecutionDelay || 500,
     exitingExecutionDelay: config.options.exitingExecutionDelay || 1000,
     disableRoleChangeChecks: config.options.disableRoleChangeChecks || false,
-    ownerIsAnAdmin: config.options.ownerIsAnAdmin || true
+    ownerIsAnAdmin: config.options.ownerIsAnAdmin || true,
+    sendMessageOnStartup: config.options.sendMessageOnStartup || true
 };
 
 //Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
