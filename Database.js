@@ -25,7 +25,7 @@ function init() {
  function getHighestRole(discordId,callback) {
 	db.get("SELECT DiscordId,HighestRole FROM highest_role WHERE DiscordId = ?", [discordId.toString()], (err, row) => {
         if (err) {console.error(err.message);}
-        callback(typeof row == "undefined" ? null : row.HighestRole);
+        callback(row);
 	});
 }
 
@@ -35,13 +35,13 @@ function init() {
  * @param {string} highestRole - The highestRole to set
  */
  function setHighestRole(discordId, newHighestRole) {
-    getHighestRole(discordId,(oldHighestRole) => {
-        if (oldHighestRole == null) {
+    getHighestRole(discordId,(row) => {
+        if (typeof row == "undefined") {
             db.run("insert into highest_role(DiscordId,HighestRole) values (?,?)", [discordId.toString(), newHighestRole], (err) => {
                 if (err) {console.error(err.message);}
             });
         } else {
-            if (newHighestRole != oldHighestRole) {
+            if (newHighestRole != row.HighestRole) {
                 db.run("UPDATE highest_role set HighestRole = ? WHERE DiscordId = ?;", [newHighestRole,discordId.toString()], (err) => {
                     if (err) { console.error(err.message);}
                 });

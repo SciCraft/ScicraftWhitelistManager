@@ -247,7 +247,7 @@ async function modifyLog(discordClient, action, server) {
         var data = whitelistLogCache[action.username];
         await data.msg.then((message) => {
             var lastEmbed = message.embeds[0];
-            var lastDesc = data.desc;
+            var lastDesc = (typeof data.desc == "undefined") ? "" : data.desc;
             var newDesc = lastDesc;
             if (lastDesc.endsWith("`")) {
                 newDesc += `,\`${server}\``;

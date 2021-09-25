@@ -146,11 +146,10 @@ async function runCommands() { //Needs another rewrite xD
                         if (Config.Actions[action.action] != null) {
                             var theAction = Config.Actions[action.action];
                             var cmd = util.format(theAction.cmd, action.username);
-                            client.write("chat", {message: cmd});
                             if (Config.options.verbose) {
                                 console.log(`${serverName} - ${cmd}`);
                             }
-                            if (Config.options.verbose && !action.silent) client.write("chat", {message: util.format(theAction.msg, action.username)});
+                            if (Config.options.verbose && !action.silent) console.log(`chat - ${util.format(theAction.msg, action.username)}`);
                             Config.modifyLog(discordClient,action,serverName);
                             if (theAction.entry != null && ServerAction[theAction.entry] != null) {
                                 databaseEntryList.push({entry:ServerAction[theAction.entry],username:action.username,server:serverName});
@@ -161,9 +160,9 @@ async function runCommands() { //Needs another rewrite xD
                         let action = customServerActions.pop();
                         if (Config.Actions[action.action] != null) {
                             var theAction = Config.Actions[action.action];
-                            client.write("chat", {message: action.command});
                             if (Config.options.verbose) {
                                 console.log(`${serverName} - ${action.command}`);
+                                console.log(`chat - ${util.format(theAction.msg, action.username)}`);
                             }
                             //Config.modifyLog(discordClient,action,serverName);
                         }
@@ -379,6 +378,7 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                         });
                         Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
                     });
+                    Database.setActive(false,username);
                 });
             });
         } else if (oldHighestRole != newHighestRole) { //If the role changed
@@ -389,7 +389,9 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                         serversToAdd.forEach((serverName) => { // Loop through all servers they had access to
                             Config.scheduleAction(Config.Actions.Whitelist.id, serverName, username, Config.options.WhitelistAutomaticallyQuietly); //Send commands to server
                         });
-                        Config.setupLog(discordClient, newMember, username, Config.Actions.Whitelist.id); //setup a log for this event
+                        if (serversToAdd.length > 0) {
+                            Config.setupLog(discordClient, newMember, username, Config.Actions.Whitelist.id); //setup a log for this event
+                        }
                     });
                     if (Config.options.ReWhitelistAutomatically && accounts.length < Config.jsonRoles[newHighestRole].accounts) { //If should rewhitelist automatically
                         Database.getInActiveUsernames(newMember.id,Config.jsonRoles[newHighestRole].accounts-accounts.length,(inactiveAccounts) => {
@@ -412,7 +414,9 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                                     serversToRemove.forEach((serverName,_) => {
                                         Config.scheduleAction(Config.Actions.Unwhitelist.id,serverName, username, Config.options.WhitelistAutomaticallyQuietly); //Send commands to server
                                     });
-                                    Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                                    if (serversToRemove.length > 0) {
+                                        Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                                    }
                                 });
                             });
                             var accountsLeft = accounts.filter(acct => !accountsToRemove.includes(acct));
@@ -421,7 +425,9 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                                 serversToRemove.forEach((serverName) => { // Loop through all servers they had access to
                                     Config.scheduleAction(Config.Actions.Unwhitelist.id, serverName, username, Config.options.WhitelistAutomaticallyQuietly); //Send commands to server
                                 });
-                                Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                                if (serversToRemove.length > 0) {
+                                    Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                                }
                             });
                         });
                     } else {//No accounts over limit
@@ -431,7 +437,9 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                             serversToRemove.forEach((serverName) => { // Loop through all servers they had access to
                                 Config.scheduleAction(Config.Actions.Unwhitelist.id, serverName, username, Config.options.WhitelistAutomaticallyQuietly); //Send commands to server
                             });
-                            Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                            if (serversToRemove.length > 0) {
+                                Config.setupLog(discordClient, newMember, username, Config.Actions.Unwhitelist.id); //setup a log for this event
+                            }
                         });
                     }
                 });

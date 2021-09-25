@@ -39,7 +39,7 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
                             countServers++;
                         } else {
                             Config.jsonRoles[highestRole].servers.forEach((serverName,_) => { //Send commands to all servers for role
-                                if (servers != null && (!checkAllServers || !servers.includes(serverName))) {
+                                if (servers == null || (checkAllServers && servers.includes(serverName))) {
                                     Config.scheduleAction(Config.Actions.Whitelist.id,serverName, username, runQuietly); //Send commands to servers
                                     countServers++;
                                 }
