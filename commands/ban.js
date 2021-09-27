@@ -5,8 +5,8 @@ const argumentAmt = {min:1,max:3};
 
 function run(discordClient, isAdmin, highestRole, user, channel, args) { //Function to run
     Utils.parseUsername(args[0],channel,(username) => {
-        var runQuietly, runSingle = false;
-        var singleServer = "";
+        let runQuietly, runSingle = false;
+        let singleServer = "";
         if (args.length > 1) {
             runQuietly = args[1].toLowerCase() === 'true';
             if (args.length > 2) {

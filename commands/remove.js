@@ -9,8 +9,8 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
             if (usernames.includes(username)) {
                 discordClient.Database.isMcUsernameAvailable(username,(row) => {
                     if (row == null) {channel.send("This account has not been registered yet!"); return;}
-                    var runQuietly, runSingle, runForce = false;
-                    var singleServer = "";
+                    let runQuietly, runSingle, runForce = false;
+                    let singleServer = "";
                     if (args.length > 1) {
                         if (!isAdmin) {channel.send("The Optional arguments for this command can only be used by Admins!"); return;}
                         runQuietly = args[1].toLowerCase() === 'true';
@@ -26,14 +26,14 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
                             if (singleServer == undefined) {channel.send("The server you are trying to un-whitelist on does not exist!"); return;}
                         }
                     }
-                    var servers = JSON.parse(row.Servers);
+                    const servers = JSON.parse(row.Servers);
                     if (row.DiscordId == user.id.toString() && (runSingle ? (runForce || servers.includes(singleServer)) : true)) {
                         if (runSingle) {
                             Config.scheduleAction(Config.Actions.Unwhitelist.id, singleServer, username, runQuietly); //Send commands to servers
                             channel.send(username + " has been un-whitelisted");
                             Config.setupLog(discordClient, user, username, Config.Actions.Unwhitelist.id);
                         } else {
-                            var countServers = 0;
+                            let countServers = 0;
                             discordClient.Database.setActive(false,username);
                             Config.jsonRoles[highestRole].servers.forEach((serverName,_) => { //Send commands to all servers for role
                                 if (servers != null && (runForce || servers.includes(serverName))) {

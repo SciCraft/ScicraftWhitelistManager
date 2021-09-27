@@ -1,12 +1,11 @@
-var https = require('https');
+const https = require('https');
 
 function parseUsername(username, channel, callback) {
     if (username.length <= 16) {
-        var removeQuoteUsername = username.replace(/^"|"$/g, '');
-        var newUsername = removeQuoteUsername.replace(/[^\w\s_]/gi,'');
-        if (removeQuoteUsername === newUsername) {
+        const removeQuoteUsername = username.replace(/^"|"$/g, '');
+        if (removeQuoteUsername === removeQuoteUsername.replace(/[^\w\s_]/gi,'')) {
             https.get("https://api.mojang.com/users/profiles/minecraft/" + username, (res) => {
-                var body = '';
+                let body = '';
                 res.on('data', (chunk) => {
                     body += chunk;
                 });
@@ -56,7 +55,7 @@ module.exports = {
 
     usernameToUUID: (username, callback) => {
         https.get("https://api.mojang.com/users/profiles/minecraft/" + username, (res) => {
-            var body = '';
+            let body = '';
             res.on('data', (chunk) => {
                 body += chunk;
             });
@@ -68,7 +67,7 @@ module.exports = {
 
     parseServerName: (Config,highestRole,serverInput,force,callback) => {
         if (serverInput == '*') return; //Just whitelist on all the servers that this person is allowed to be whitelisted on!
-        var serverName = Object.keys(Config.servers).find(serverName => serverInput.toLowerCase() === serverName.toLowerCase());
+        const serverName = Object.keys(Config.servers).find(serverName => serverInput.toLowerCase() === serverName.toLowerCase());
         callback(typeof serverName == "undefined" ? undefined : ((force || Config.jsonRoles[highestRole].servers.includes(serverName)) ? serverName : null));
     },
 

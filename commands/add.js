@@ -8,8 +8,8 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
         discordClient.Database.getActiveUsernames(user.id,(usernames) => {
             if (usernames.length < Config.jsonRoles[highestRole].accounts || usernames.includes(username)) {
                 discordClient.Database.isMcUsernameAvailable(username,(row) => {
-                    var runQuietly, runSingle, runForce, checkAllServers = false;
-                    var singleServer = "";
+                    let runQuietly, runSingle, runForce, checkAllServers = false;
+                    let singleServer = "";
                     if (args.length > 1) {
                         if (!isAdmin) {channel.send("The Optional arguments for this command can only be used by Admins!"); return;}
                         runQuietly = args[1].toLowerCase() === 'true';
@@ -25,8 +25,8 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
                             if (singleServer == undefined) {channel.send("The server you are trying to whitelist on does not exist!"); return;}
                         }
                     }
-                    var countServers = 0;
-                    var servers = row == null ? null : JSON.parse(row.Servers);
+                    let countServers = 0;
+                    const servers = row == null ? null : JSON.parse(row.Servers);
                     if (row == null || (row.DiscordId == user.id.toString() && (row.Active ? (runSingle ? (runForce || !servers.includes(singleServer)) : (checkAllServers = true)) : true))) {
                         if (row == null) {
                             discordClient.Database.setUsername(user.id,username,user.id); //Add user to the database

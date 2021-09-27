@@ -249,10 +249,10 @@ function getActive(username, callback) {
 function addWaiting(action,username,server,quietly,callback) {
 	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
-		var waiting;
+		let waiting;
 		if (typeof row != "undefined") {
             if (row.Waiting != null) {
-                var waitingArray = JSON.parse(row.Waiting);
+                const waitingArray = JSON.parse(row.Waiting);
                 if (waitingArray.some(obj => (obj[1] == server && obj[0] == action))) { //Prevent duplicates
                     waiting = null; //Maybe handle quietly overrides later
                 } else {
@@ -289,8 +289,8 @@ function addWaiting(action,username,server,quietly,callback) {
 	db.get("SELECT McUsername,Waiting FROM whitelist WHERE McUsername = ? LIMIT 1 COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		if (typeof row != "undefined") {
-            var currentWaiting = JSON.parse(row.Waiting);
-		    var waiting = JSON.stringify(typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : []);
+            const currentWaiting = JSON.parse(row.Waiting);
+		    const waiting = JSON.stringify(typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : []);
             db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ?", [waiting,username], (err) => {
 			    if (err) { console.error(err.message);}
                 if (options.verbose) {
@@ -340,10 +340,10 @@ function forEachWaiting(callback) {
  function addServer(username,server, callback) {
 	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
-		var servers;
+		let servers;
 		if (typeof row != "undefined") {
             if (row.Servers != null) {
-                var serverArray = JSON.parse(row.Servers);
+                const serverArray = JSON.parse(row.Servers);
                 if (!serverArray.includes(server)) { //prevent duplicates
                     serverArray.push(server)
 				    servers = JSON.stringify(serverArray);
@@ -374,8 +374,8 @@ function forEachWaiting(callback) {
 	db.get("SELECT McUsername,Servers FROM whitelist WHERE McUsername = ? LIMIT 1 COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		if (typeof row != "undefined") {
-            var currentServers = JSON.parse(row.Servers);
-		    var servers = JSON.stringify(currentServers.filter(val => val != server));
+            const currentServers = JSON.parse(row.Servers);
+		    const servers = JSON.stringify(currentServers.filter(val => val != server));
             db.run("UPDATE whitelist set Servers = ? WHERE McUsername = ?", [servers,username], (err) => {
 			    if (err) { console.error(err.message);}
                 if (options.verbose) {

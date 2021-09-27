@@ -3,12 +3,11 @@ const yaml = require('js-yaml');
 
 const jsTest = /\.js$/;
 
-var doc;
+let doc;
 try {
     doc = yaml.load(fs.readFileSync('./config.yaml', 'utf8'));
-    //console.log(doc);
 } catch (e) {
-    console.log(e);
+    console.error(e);
 }
 const config = doc;
 
@@ -112,7 +111,7 @@ Object.keys(Actions).forEach((actionName, _) => { //Set action id's
 });
 
 
-var commandList = [];
+let commandList = [];
 
 try {
     commandList = fs.readdirSync("./commands");
@@ -168,10 +167,10 @@ let cmdManager = {
     }
 }
 
-var actionQueue = []; // Server: [Action, Username, Silent]
-var customActionQueue = []; // Server: [Action, Username, Command, Silent]
+let actionQueue = []; // Server: [Action, Username, Silent]
+let customActionQueue = []; // Server: [Action, Username, Command, Silent]
 
-var whitelistLogCache = []; // username: [action, msgRef, time]
+let whitelistLogCache = []; // username: [action, msgRef, time]
 
 function warnMissingIp() {
   console.error("A server does not have an IP assigned to it!");
@@ -220,7 +219,7 @@ function shouldLogAction(action) {
 
 function createLog(discordClient, user, username, action) {
 	if (whitelistLog && shouldLogAction(action)) {
-		var description, color = "";
+		let description, color = "";
         if (Actions[action] != null) {
             description = Actions[action].inf || "";
             color = Actions[action].col || "#000000";
@@ -237,7 +236,7 @@ function createLog(discordClient, user, username, action) {
 
 function setupLog(discordClient, user, username, action) {
     if (whitelistLog && shouldLogAction(action) && (whitelistLogCache[username] == null || (whitelistLogCache[username] != null && whitelistLogCache[username].action != action))) {
-        var data = createLog(discordClient, user, username, action);
+        const data = createLog(discordClient, user, username, action);
         whitelistLogCache[username] = {action:action,msg:data.msg, desc:data.desc, time: Date.now()};
     }
     if (discordClient != null) {
@@ -248,24 +247,23 @@ function setupLog(discordClient, user, username, action) {
 async function modifyLog(discordClient, action, server) {
 	if (!whitelistLog || !shouldLogAction(action.action) || action.username == null) return;
     if (whitelistLogCache[action.username] != null && whitelistLogCache[action.username].action == action.action) { //If cached
-        var data = whitelistLogCache[action.username];
+        const data = whitelistLogCache[action.username];
         await data.msg.then((message) => {
-            var lastEmbed = message.embeds[0];
-            var lastDesc = (typeof data.desc == "undefined") ? "" : data.desc;
-            var newDesc = lastDesc;
+            const lastEmbed = message.embeds[0];
+            const lastDesc = (typeof data.desc == "undefined") ? "" : data.desc;
+            let newDesc = lastDesc;
             if (lastDesc.endsWith("`")) {
                 newDesc += `,\`${server}\``;
             } else {
                 newDesc += ` \`${server}\``;
             }
             data.desc = newDesc;
-            const logEmbed = new Discord.MessageEmbed().setColor(lastEmbed.color).setTitle(lastEmbed.title).setDescription(newDesc).setFooter(lastEmbed.footer.text,lastEmbed.footer.iconUrl);
-            message.edit(logEmbed);
+            message.edit(new Discord.MessageEmbed().setColor(lastEmbed.color).setTitle(lastEmbed.title).setDescription(newDesc).setFooter(lastEmbed.footer.text,lastEmbed.footer.iconUrl));
         });
     } else {
         discordClient.Database.getDiscordId(action.username,(discordId) => { //If its not cached then make a cache for it
             discordClient.users.fetch(discordId).then(user => {
-                var data = createLog(discordClient, {user:user}, action.username, action.action);
+                const data = createLog(discordClient, {user:user}, action.username, action.action);
                 whitelistLogCache[action.username] = {action: action.action, msg: data.msg, desc: data.desc, time: Date.now()};
                 modifyLog(discordClient, action, server);
             });

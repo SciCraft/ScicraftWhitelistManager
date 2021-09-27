@@ -32,13 +32,12 @@ function run(discordClient, isAdmin, highestRole, user, channel, args) { //Funct
 function sendEmbedDiscord(discordClient,mention,channel) {
     discordClient.users.fetch(mention).then(user => {
         discordClient.Database.getUsernames(user.id,(usernames) => {
-            const logEmbed = new Discord.MessageEmbed()
+            channel.send(new Discord.MessageEmbed()
                 .setTitle(user.tag)
                 .setFooter("userId: "+mention)
                 .setURL("https://discordapp.com/users/"+user.id+"/")
                 .setThumbnail(user.displayAvatarURL())
-                .setDescription("**Usernames:**\n `"+usernames.join("`,`")+"`");
-            channel.send(logEmbed);
+                .setDescription("**Usernames:**\n `"+usernames.join("`,`")+"`"));
         });
     });
 }
@@ -47,7 +46,7 @@ function sendEmbedDiscord(discordClient,mention,channel) {
 function sendEmbedUsername(discordClient,channel,row) {
     discordClient.users.fetch(row.DiscordId).then(user => {
         Utils.usernameToUUID(row.McUsername, (uuid) => {
-            const logEmbed = new Discord.MessageEmbed()
+            channel.send(new Discord.MessageEmbed()
                 .setColor((row.Active ? "#00EE00" : "EE0000"))
                 .setAuthor(row.McUsername,user.displayAvatarURL(),"https://discordapp.com/users/"+row.DiscordId+"/")
                 .setFooter("Added on:")
@@ -59,8 +58,7 @@ function sendEmbedUsername(discordClient,channel,row) {
                     { name: 'Issued by: ', value: '<@'+(row.Issuer || "0")+'>', inline: true },
                     { name: 'Is Active: ', value: (row.Active ? "`True`" : "`False`"), inline: true },
                     { name: 'Expires: ', value: (row.Expires ? "<t:"+Math.floor(new Date(row.Expires).getTime()/1000.0)+">" : "`Never`"), inline: true }
-                );
-            channel.send(logEmbed);
+            ));
         });
     });
 }
