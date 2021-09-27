@@ -201,9 +201,7 @@ function isMcUsernameAvailable(username, callback) {
 function setActive(active,username) {
     db.run("UPDATE whitelist set Active = ? WHERE McUsername = ?;", [active,username], (err) => {
         if (err) { logger.error(err.message);}
-        if (options.verbose) {
-            logger.log(`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
-        }
+        logger.log('verbose',`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
     });
 }
 
