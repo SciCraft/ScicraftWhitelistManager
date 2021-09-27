@@ -1,5 +1,6 @@
 const fs = require("fs");
 const yaml = require('js-yaml');
+const logger = require("./Logger");
 
 const jsTest = /\.js$/;
 
@@ -7,7 +8,7 @@ let doc;
 try {
     doc = yaml.load(fs.readFileSync('./config.yaml', 'utf8'));
 } catch (e) {
-    console.error(e);
+    logger.error(e);
 }
 const config = doc;
 
@@ -117,7 +118,7 @@ let commandList = [];
 try {
     commandList = fs.readdirSync("./commands");
 } catch(e) {
-    console.log(e);
+    logger.warn(e);
 }
 
 let commands = {};
@@ -164,7 +165,7 @@ let cmdManager = {
         commands[name].argumentAmt = func.argumentAmt || {min:0,max:0};
     },
     printList: () => {
-        console.log(commands);
+        logger.info(commands);
     }
 }
 
@@ -173,17 +174,13 @@ let customActionQueue = []; // Server: [Action, Username, Command, Silent]
 
 let whitelistLogCache = []; // username: [action, msgRef, time]
 
-function warnMissingIp() {
-  console.error("A server does not have an IP assigned to it!");
-}
-
 Object.keys(servers).forEach((serverName, _) => {
     if (servers[serverName].ip == null || servers[serverName].ip == "") {
         delete servers[serverName];
-        console.warn("Removed server: "+serverName+" - For having an invalid IP!");
+        logger.warn("Removed server: "+serverName+" - For having an invalid IP!");
     } else {
         servers[serverName] = {
-            ip: servers[serverName].ip || warnMissingIp(),
+            ip: servers[serverName].ip,
             isCreative: (servers[serverName].isCreative == null ? false : servers[serverName].isCreative),
             shouldOp: (servers[serverName].shouldOp == null ? false : servers[serverName].shouldOp),
             opRole: servers[serverName].opRole

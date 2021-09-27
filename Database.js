@@ -1,11 +1,10 @@
-const {Actions, options} = require("./Config");
+const logger = require("./Logger");
+const {Actions} = require("./Config");
 
 const sqlite3 = require("sqlite3").verbose();
 let db = new sqlite3.Database("whitelist.sqlite3", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, err => {
-	if (err) { console.error(err.message); }
-    if (options.verbose) {
-	    console.log("Connected to the whitelist database.");
-    }
+	if (err) { logger.error(err.message); }
+    logger.log('verbose',"Connected to the whitelist database.");
 });
 
 function init() {
@@ -24,7 +23,7 @@ function init() {
  */
  function getHighestRole(discordId,callback) {
 	db.get("SELECT DiscordId,HighestRole FROM highest_role WHERE DiscordId = ?", [discordId.toString()], (err, row) => {
-        if (err) {console.error(err.message);}
+        if (err) {logger.error(err.message);}
         callback(row);
 	});
 }
@@ -38,12 +37,12 @@ function init() {
     getHighestRole(discordId,(row) => {
         if (typeof row == "undefined") {
             db.run("insert into highest_role(DiscordId,HighestRole) values (?,?)", [discordId.toString(), newHighestRole], (err) => {
-                if (err) {console.error(err.message);}
+                if (err) {logger.error(err.message);}
             });
         } else {
             if (newHighestRole != row.HighestRole) {
                 db.run("UPDATE highest_role set HighestRole = ? WHERE DiscordId = ?;", [newHighestRole,discordId.toString()], (err) => {
-                    if (err) { console.error(err.message);}
+                    if (err) { logger.error(err.message);}
                 });
             }
         }
@@ -55,7 +54,7 @@ function init() {
  */
  function forEachHighestRole(callback) {
     db.all("SELECT DiscordId,HighestRole FROM highest_role",[], (err, rows) => {
-        if (err) { console.error(err.message);}
+        if (err) { logger.error(err.message);}
         if (typeof rows != "undefined"){
             rows.forEach(obj => {
                 callback(obj);
@@ -70,10 +69,8 @@ function init() {
  */
  function removeHighestRole(discordId) {
 	db.run("DELETE FROM highest_role WHERE DiscordId=?", [discordId.toString()], (err) => {
-		if (err) { console.error(err.message);}
-        if (options.verbose) {
-		    console.log(`HighestRole - Successfully deleted user: ${discordId.toString()}`);
-        }
+		if (err) { logger.error(err.message);}
+        logger.log('verbose',`HighestRole - Successfully deleted user: ${discordId.toString()}`);
 	});
 }
 
@@ -84,7 +81,7 @@ function init() {
  */
  function countActiveAccounts(discordId,callback) {
 	db.all("SELECT DiscordId,Active FROM whitelist WHERE DiscordId = ? AND Active == True", [discordId.toString()], (err, rows) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
         callback(typeof rows == "undefined" ? 0 : rows.length);
 	});
 }
@@ -96,7 +93,7 @@ function init() {
  */
  function getActiveUsernames(discordId,callback) {
 	db.all("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND Active == True", [discordId.toString()], (err, rows) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
         callback(typeof rows == "undefined" ? [] : rows.map(a => a.McUsername));
 	});
 }
@@ -110,12 +107,12 @@ function init() {
  function getInActiveUsernames(discordId, amt, callback) {
     if (amt == null) {
         db.all("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND Active == False;", [discordId.toString()], (err, rows) => {
-            if (err) {console.error(err.message);}
+            if (err) {logger.error(err.message);}
             callback(typeof rows == "undefined" ? [] : rows.map(a => a.McUsername));
         });
     } else {
         db.all("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND Active == False LIMIT ?;", [discordId.toString(),amt], (err, rows) => {
-            if (err) {console.error(err.message);}
+            if (err) {logger.error(err.message);}
             callback(typeof rows == "undefined" ? [] : rows.map(a => a.McUsername));
         });
     }
@@ -129,7 +126,7 @@ function init() {
  */
 function isUsersAccount(discordId,mcusername,callback) {
 	db.get("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND McUsername = ? LIMIT 1 COLLATE NOCASE;", [discordId.toString(),mcusername], (err, row) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
         callback(!(typeof rows == "undefined"));
 	});
 }
@@ -141,7 +138,7 @@ function isUsersAccount(discordId,mcusername,callback) {
  */
 function getDiscordId(mcusername,callback) {
 	db.get("SELECT DiscordId,McUsername FROM whitelist WHERE McUsername = ?;", [mcusername], (err, row) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
         callback(typeof row == "undefined" ? null : row.DiscordId);
 	});
 }
@@ -153,7 +150,7 @@ function getDiscordId(mcusername,callback) {
  */
 function getUsername(mcusername,callback) {
 	db.get("SELECT DiscordId,McUsername,Servers,Waiting,Issuer,Active,Expires,Added FROM whitelist WHERE McUsername = ? LIMIT 1;", [mcusername], (err, row) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
 		callback(row);
 	});
 }
@@ -165,7 +162,7 @@ function getUsername(mcusername,callback) {
  */
 function getUsernames(discordId,callback) {
 	db.all("SELECT DiscordId,McUsername FROM whitelist WHERE DiscordId = ?;", [discordId.toString()], (err, rows) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
 		callback(rows.map(a => a.McUsername));
 	});
 }
@@ -178,10 +175,8 @@ function getUsernames(discordId,callback) {
  */
 function setUsername(discordId, username, issuerId) {
 	db.run("insert into whitelist(DiscordId,McUsername,Active,Issuer) values (?,?,1,?)", [discordId.toString(), username,issuerId.toString()], (err) => {
-		if (err) {console.error(err.message);}
-        if (options.verbose) {
-		    console.log(`Database: ${username} was whitelisted!`);
-        }
+		if (err) {logger.error(err.message);}
+        logger.log('verbose',`Database: ${username} was whitelisted!`);
 	});
 }
 
@@ -193,7 +188,7 @@ function setUsername(discordId, username, issuerId) {
  */
 function isMcUsernameAvailable(username, callback) {
 	db.get("SELECT DiscordId,McUsername,Servers,Active FROM whitelist WHERE McUsername = ? COLLATE NOCASE;", [username], (err, row) => {
-		if (err) {console.error(err.message);}
+		if (err) {logger.error(err.message);}
         callback(typeof row == "undefined" ? null : row);
 	});
 }
@@ -205,9 +200,9 @@ function isMcUsernameAvailable(username, callback) {
  */
 function setActive(active,username) {
     db.run("UPDATE whitelist set Active = ? WHERE McUsername = ?;", [active,username], (err) => {
-        if (err) { console.error(err.message);}
+        if (err) { logger.error(err.message);}
         if (options.verbose) {
-            console.log(`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
+            logger.log(`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
         }
     });
 }
@@ -219,10 +214,8 @@ function setActive(active,username) {
  */
  function setActiveCallback(active,username,callback) {
     db.run("UPDATE whitelist set Active = ? WHERE McUsername = ?;", [active,username], (err) => {
-        if (err) { console.error(err.message);}
-        if (options.verbose) {
-            console.log(`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
-        }
+        if (err) { logger.error(err.message);}
+        logger.log('verbose',`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
         callback();
     });
 }
@@ -234,7 +227,7 @@ function setActive(active,username) {
  */
 function getActive(username, callback) {
     db.run("SELECT McUsername,Active FROM whitelist WHERE McUsername = ? LIMIT 1;", [username], (err, row) => {
-        if (err) { console.error(err.message);}
+        if (err) { logger.error(err.message);}
         callback(typeof row != "undefined" ? row.Active : false);
     });
 }
@@ -248,7 +241,7 @@ function getActive(username, callback) {
  */
 function addWaiting(action,username,server,quietly,callback) {
 	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		let waiting;
 		if (typeof row != "undefined") {
             if (row.Waiting != null) {
@@ -268,14 +261,14 @@ function addWaiting(action,username,server,quietly,callback) {
 			}
             if (waiting != null) {
                 db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ?;", [waiting,username], (err) => {
-                    if (err) { console.error(err.message);}
+                    if (err) { logger.error(err.message);}
                     callback();
                 });
             } else {
                 callback();
             }
-		} else if (options.verbose){
-			console.log("That user does not exist!!!");
+		} else {
+			logger.log('verbose',"That user does not exist!!!");
         }
 	});
 }
@@ -287,19 +280,17 @@ function addWaiting(action,username,server,quietly,callback) {
  */
  function removeWaiting(username,server, callback) {
 	db.get("SELECT McUsername,Waiting FROM whitelist WHERE McUsername = ? LIMIT 1 COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		if (typeof row != "undefined") {
             const currentWaiting = JSON.parse(row.Waiting);
 		    const waiting = JSON.stringify(typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : []);
             db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ?", [waiting,username], (err) => {
-			    if (err) { console.error(err.message);}
-                if (options.verbose) {
-			        console.log(`Removed Waiting for username: ${username}, on server: ${server}`);
-                }
+			    if (err) { logger.error(err.message);}
+                logger.log('verbose',`Removed Waiting for username: ${username}, on server: ${server}`);
                 callback();
 		    });
-		} else if (options.verbose) {
-			console.log("That user does not exist!!!");
+		} else {
+			logger.log('verbose',"That user does not exist!!!");
 		}
 	});
 }
@@ -311,7 +302,7 @@ function addWaiting(action,username,server,quietly,callback) {
  */
 function getWaiting(username, callback) {
 	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		callback(typeof row != "undefined" ? JSON.parse(row.Waiting) : []);
 	});
 }
@@ -321,7 +312,7 @@ function getWaiting(username, callback) {
  */
 function forEachWaiting(callback) {
     db.each("SELECT DiscordId,McUsername,Waiting,Active FROM whitelist WHERE Active == True AND Waiting IS NOT NULL;",[], (err, row) => {
-        if (err) { console.error(err.message);}
+        if (err) { logger.error(err.message);}
         if (typeof row != "undefined"){
             JSON.parse(row.Waiting).forEach((obj,_) => {
                 removeWaiting(row.McUsername,obj[1], () => {
@@ -339,7 +330,7 @@ function forEachWaiting(callback) {
  */
  function addServer(username,server, callback) {
 	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		let servers;
 		if (typeof row != "undefined") {
             if (row.Servers != null) {
@@ -353,14 +344,14 @@ function forEachWaiting(callback) {
 			}
             if (servers != null) {
                 db.run("UPDATE whitelist set Servers = ? WHERE McUsername = ?;", [servers,username], (err) => {
-                    if (err) { console.error(err.message);}
+                    if (err) { logger.error(err.message);}
                     callback();
                 });
             } else {
                 callback();
             }
-		} else if (options.verbose) {
-			console.log("That user does not exist!!!");
+		} else {
+			logger.log('verbose',"That user does not exist!!!");
         }
 	});
 }
@@ -372,19 +363,17 @@ function forEachWaiting(callback) {
  */
  function removeServer(username, server, callback) {
 	db.get("SELECT McUsername,Servers FROM whitelist WHERE McUsername = ? LIMIT 1 COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		if (typeof row != "undefined") {
             const currentServers = JSON.parse(row.Servers);
 		    const servers = JSON.stringify(currentServers.filter(val => val != server));
             db.run("UPDATE whitelist set Servers = ? WHERE McUsername = ?", [servers,username], (err) => {
-			    if (err) { console.error(err.message);}
-                if (options.verbose) {
-			        console.log(`Removed Server for username: ${username}`);
-                }
+			    if (err) { logger.error(err.message);}
+                logger.log('verbose',`Removed Server for username: ${username}`);
                 callback();
 		    });
-		} else if (options.verbose) {
-			console.log("That user does not exist!!!");
+		} else {
+			logger.log('verbose',"That user does not exist!!!");
 		}
 	});
 }
@@ -396,7 +385,7 @@ function forEachWaiting(callback) {
  */
 function getServers(username,callback) {
 	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
-		if (err) { console.error(err.message);}
+		if (err) { logger.error(err.message);}
 		callback(typeof row != "undefined" ? JSON.parse(row.Servers) : []);
 	});
 }
@@ -407,10 +396,8 @@ function getServers(username,callback) {
  */
  function removeUser(username) {
 	db.run("DELETE FROM whitelist WHERE McUsername=?", [username], (err) => {
-		if (err) { console.error(err.message);}
-        if (options.verbose) {
-		    console.log("Successfully deleted user!");
-        }
+		if (err) { logger.error(err.message);}
+        logger.log('verbose',"Successfully deleted user!");
 	});
 }
 
@@ -421,7 +408,7 @@ function getServers(username,callback) {
  */
 function getAccountsOverLimit(discordId,removeAmt,callback) {
     db.all("SELECT DiscordId,McUsername,Active,Added FROM whitelist WHERE DiscordId = ? AND Active == True ORDER BY Added DESC LIMIT ?",[discordId.toString(),removeAmt], (err, rows) => {
-        if (err) { console.error(err.message);}
+        if (err) { logger.error(err.message);}
         callback(typeof row == "undefined" ? [] : rows.map(a => a.McUsername));
     });
 }

@@ -1,5 +1,8 @@
 process.title = "SCI"; //For easy shutdown
 
+//Setup the winston logger
+const logger = require("./Logger");
+
 //Require Utils
 const Utils = require("./Utils");
 const util = require("util");
@@ -7,7 +10,6 @@ const util = require("util");
 //Require Minecraft Protocol
 const mc = require("minecraft-protocol"); // BOT Method
 const RCON = require("./libs/RCON.js"); // RCON Method
-const states = mc.states;
 
 //Require & Initialize Discord.js
 const Discord = require("discord.js");
@@ -16,19 +18,41 @@ const discordClient = new Discord.Client();
 //Require Config
 const Config = require("./Config");
 
+const {format, transports} = require('winston');
+
+const stringify = format(info => {
+    const padding = info.padding && info.padding[info.level] || '';
+    info[Symbol.for('message')] = `${info.level}:${padding} ${info.message}`;
+    return info;
+});
+
+logger.add(new transports.Console({
+    format: format.combine(
+        format.colorize({
+            all: true
+        }),
+        stringify()
+    ),
+    level: Config.options.debugMode ? 'debug' : (Config.options.verbose ? 'verbose' : 'info')
+}));
+
+if (Config.options.debugMode || Config.options.verbose) {
+    logger.exitOnError = true; //We want it to crash so we can fix the issue
+}
+
+process.on('exit', function () {
+    logger.end();
+});
+
+process.on('unhandledRejection', error => {
+    logger.error('Unhandled promise rejection:', error);
+});
+
 //Require & Initialize Database
 const Database = require("./Database");
 Database.init();
 
 let GuildOwner = null;
-
-/*let client = mc.createClient({
-    username: Config.bot_email, // The Email
-    //password: Config.password, // The Password
-    auth: "microsoft", // The Auth Type
-    version: false, // Automatic Version Detection
-    hideErrors: true //Can cause crash
-});*/
 let client = null;
 let clientReady = true;
 let curentServer = "";
@@ -56,14 +80,8 @@ if (Config.method == "rcon") {
 	Object.keys(Config.servers).forEach((serverName, _) => {
 		rconServers[serverName] = new RCON();
 		const address = Config.servers[serverName].ip.split(":");
-		rconServers[serverName].connect(address[0], address[1], Config.password).catch(error => { console.error(`An error occured: ${error}`);});
+		rconServers[serverName].connect(address[0], address[1], Config.password).catch(error => { logger.error(`An error occured: ${error}`);});
 	});
-}
-
-if (Config.options.debugMode) {
-    process.on('unhandledRejection', error => {
-        console.error('Unhandled promise rejection:', error);
-    });
 }
 
 function sendHelpMsg(_, isAdmin, highestRole, user, channel, args) {
@@ -152,9 +170,7 @@ async function runCommands() { //Needs another rewrite xD
             let customServerActions = Config.customActionQueue[serverName];
             if (serverActions.length > 0 || customServerActions.length > 0) {
                 if (false) { // Test Waiting
-                    if (Config.options.verbose) {
-                        console.log(`${serverName} - Server Down!`);
-                    }
+                    logger.log('verbose',`${serverName} - Server Down!`);
                     while(serverActions.length > 0) {
                         let action = serverActions.pop();
                         databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action,silent:(action.silent == null) ? false : action.silent});
@@ -170,10 +186,8 @@ async function runCommands() { //Needs another rewrite xD
                         let action = serverActions.pop();
                         if (Config.Actions[action.action] != null) {
                             const theAction = Config.Actions[action.action];
-                            if (Config.options.verbose) {
-                                console.log(`${serverName} - ${util.format(theAction.cmd, action.username)}`);
-                            }
-                            if (Config.options.verbose && !action.silent) console.log(`chat - ${util.format(theAction.msg, action.username)}`);
+                            logger.log('verbose',`${serverName} - ${util.format(theAction.cmd, action.username)}`);
+                            if (Config.options.verbose && !action.silent) logger.info(`chat - ${util.format(theAction.msg, action.username)}`);
                             Config.modifyLog(discordClient,action,serverName);
                             if (theAction.entry != null && ServerAction[theAction.entry] != null) {
                                 databaseEntryList.push({entry:ServerAction[theAction.entry],username:action.username,server:serverName});
@@ -183,10 +197,8 @@ async function runCommands() { //Needs another rewrite xD
                     while(customServerActions.length > 0) {
                         const action = customServerActions.pop();
                         if (Config.Actions[action.action] != null) {
-                            if (Config.options.verbose) {
-                                console.log(`${serverName} - ${action.command}`);
-                                console.log(`chat - ${util.format(Config.Actions[action.action].msg, action.username)}`);
-                            }
+                            logger.log('verbose',`${serverName} - ${action.command}`);
+                            logger.log('verbose',`chat - ${util.format(Config.Actions[action.action].msg, action.username)}`);
                         }
                     }
                     if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
@@ -239,9 +251,7 @@ async function runCommands() { //Needs another rewrite xD
                                             const theAction = Config.Actions[action.action];
                                             const cmd = util.format(theAction.cmd, action.username);
                                             client.write("chat", {message: cmd});
-                                            if (Config.options.verbose) {
-                                                console.log(`${curentServer} - ${cmd}`);
-                                            }
+                                            logger.log('verbose',`${curentServer} - ${cmd}`);
                                             if (!action.silent) client.write("chat", {message: util.format(theAction.msg, action.username)});
                                             Config.modifyLog(discordClient,action,curentServer);
                                             if (theAction.entry != null && ServerAction[theAction.entry] != null) {
@@ -253,9 +263,7 @@ async function runCommands() { //Needs another rewrite xD
                                         const action = customServerActions.pop();
                                         if (Config.Actions[action.action] != null) {
                                             client.write("chat", {message: action.command});
-                                            if (Config.options.verbose) {
-                                                console.log(`${curentServer} - ${action.command}`);
-                                            }
+                                            logger.log('verbose',`${curentServer} - ${action.command}`);
                                         }
                                     }
                                     if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
@@ -289,9 +297,7 @@ async function runCommands() { //Needs another rewrite xD
                     if (typeof address[1] == "undefined" || address[1] == null) {address[1] == "25565";}
                     mc.ping({host: address[0],port: parseInt(address[1])}, (err, _) => {
                         if (err) { // If server is down, we add it to that players waiting list
-                            if (Config.options.verbose) {
-                                console.log(`${serverName} - Server Down!`);
-                            }
+                            logger.log('verbose',`${serverName} - Server Down!`);
                             while(serverActions.length > 0) {
                                 const action = serverActions.pop();
                                 databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action});
@@ -309,17 +315,15 @@ async function runCommands() { //Needs another rewrite xD
                                     const theAction = Config.Actions[action.action];
                                     const cmd = util.format(theAction.cmd, action.username);
                                     rconServer.send(cmd)
-                                        .then(response => { if (Config.options.verbose) {console.log(response);}})
-                                        .catch(error => { console.error(`An error occured: ${error}`);});
+                                        .then(response => { logger.log('verbose',response);})
+                                        .catch(error => { logger.error(`An error occured: ${error}`);});
                                     
                                     if (!action.silent) {
                                         rconServer.send(`/say ${util.format(theAction.msg, action.username)}`)
-                                            .then(response => { if (Config.options.verbose) {console.log(response);}})
-                                            .catch(error => { console.error(`An error occured: ${error}`);});
+                                            .then(response => { logger.log('verbose',response);})
+                                            .catch(error => { logger.error(`An error occured: ${error}`);});
                                     }
-                                    if (Config.options.verbose) {
-                                        console.log(`${serverName} - ${cmd}`);
-                                    }
+                                    logger.log('verbose',`${serverName} - ${cmd}`);
                                     Config.modifyLog(discordClient,action,serverName);
                                     if (theAction.entry != null && ServerAction[theAction.entry] != null) {
                                         databaseEntryList.push({entry:ServerAction[theAction.entry],username:action.username,server:serverName});
@@ -330,9 +334,9 @@ async function runCommands() { //Needs another rewrite xD
                                 const action = customServerActions.pop();
                                 if (Config.Actions[action.action] != null) {
                                     rconServer.send(action.command)
-                                        .then(response => { if (Config.options.verbose) {console.log(response);}})
-                                        .catch(error => { console.error(`An error occured: ${error}`);});
-                                    if (Config.options.verbose) {console.log(`${serverName} - ${action.command}`);}
+                                        .then(response => { logger.log('verbose',response);})
+                                        .catch(error => { logger.error(`An error occured: ${error}`);});
+                                    logger.log('verbose',`${serverName} - ${action.command}`);
                                 }
                             }
                             if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
@@ -350,6 +354,7 @@ async function runCommands() { //Needs another rewrite xD
 
 discordClient.runCommands = runCommands;
 discordClient.Database = Database;
+discordClient.logger = logger;
 discordClient.experimentalReload = () => {
     Object.keys(require.cache).forEach(key => delete require.cache[key]);
 }
@@ -510,7 +515,9 @@ function roleCheck() {
             if (guild.member(obj.DiscordId)) {
                 guild.members.fetch(obj.DiscordId).then(member => {
                     onMemberChange(member,obj.HighestRole,getHighestRole(member));
-                }).catch(console.log);
+                }).catch((err) => {
+                    logger.warn(err);
+                });
             }
         }
     });
@@ -545,10 +552,12 @@ function pingEveryHour() {
 
 //Setup discord bot
 discordClient.on("ready", () => {
-	console.log(`Logged in as ${discordClient.user.tag}!`);
+	logger.info(`Logged in as ${discordClient.user.tag}!`);
 	discordClient.user.setActivity(`Minecraft | ${Config.prefix}whitelist help`, { type: 'PLAYING' })
-	.then(presence => console.log(`Activity set to: PLAYING ${presence.activities[0].name}`))
-	.catch(console.error);
+	.then(presence => logger.info(`Activity set to: PLAYING ${presence.activities[0].name}`))
+	.catch((err) => {
+        logger.error(err);
+    });
     if (Config.guildId != 0) {
         discordClient.guilds.fetch(Config.guildId).then(guild => {
             GuildOwner = guild.ownerID;
