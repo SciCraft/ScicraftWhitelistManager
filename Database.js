@@ -70,7 +70,6 @@ function init() {
  function removeHighestRole(discordId) {
 	db.run("DELETE FROM highest_role WHERE DiscordId=?", [discordId.toString()], (err) => {
 		if (err) { logger.error(err.message);}
-        logger.log('verbose',`HighestRole - Successfully deleted user: ${discordId.toString()}`);
 	});
 }
 
