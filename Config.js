@@ -45,6 +45,7 @@ const options = {
 
 const bot_email = config.bot.email || process.env.SECRET_EMAIL || "";
 const password = config.bot.password || process.env.SECRET_PASSWORD || "";
+const bot_type = config.bot.type || "mojang";
 
 const serverCount = Object.keys(servers).length;
 
@@ -292,4 +293,4 @@ function updateLog() {
 }
 
 
-module.exports = { prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };
+module.exports = { prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, bot_type, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };

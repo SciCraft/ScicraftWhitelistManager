@@ -247,6 +247,7 @@ actions:
 bot:
   email:
   password:
+  type: microsoft
 guildId: '889981422570459206'
 adminRole: '889983267258925097'
 botTestingChannel: '889984919831457873'

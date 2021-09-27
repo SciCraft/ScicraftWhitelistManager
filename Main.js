@@ -225,7 +225,7 @@ async function runCommands() { //Needs another rewrite xD
                                 port:address[1],
                                 username: Config.bot_email,
                                 password: Config.password,
-                                auth: "microsoft", // The Auth Type
+                                auth: Config.bot_type, // The Auth Type
                                 version: false, // Automatic Version Detection
                                 hideErrors: true //Can cause crash
                             });
