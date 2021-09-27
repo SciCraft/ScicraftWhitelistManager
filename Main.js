@@ -165,9 +165,9 @@ async function runCommands() { //Needs another rewrite xD
     countServers = 0;
     databaseEntryList = []; // [entry (ServerAction), username (string), serverName (string)]
     Object.keys(Config.servers).forEach((serverName, _) => {
+        let serverActions = Config.actionQueue[serverName];
+        let customServerActions = Config.customActionQueue[serverName];
         if (Config.options.debugMode) { //debugging without needing the bot
-            let serverActions = Config.actionQueue[serverName];
-            let customServerActions = Config.customActionQueue[serverName];
             if (serverActions.length > 0 || customServerActions.length > 0) {
                 if (false) { // Test Waiting
                     logger.log('verbose',`${serverName} - Server Down!`);
@@ -290,8 +290,6 @@ async function runCommands() { //Needs another rewrite xD
                     }
                 }
             } else if (Config.method == "rcon") {
-                let serverActions = Config.actionQueue[serverName];
-                let customServerActions = Config.customActionQueue[serverName];
                 if (rconServers[serverName] != null) {
                     const address = Config.servers[serverName].ip.split(":");
                     if (typeof address[1] == "undefined" || address[1] == null) {address[1] == "25565";}
