@@ -1,16 +1,36 @@
 var https = require('https');
 
+function parseUsername(username, channel, callback) {
+    if (username.length <= 16) {
+        var removeQuoteUsername = username.replace(/^"|"$/g, '');
+        var newUsername = removeQuoteUsername.replace(/[^\w\s_]/gi,'');
+        if (removeQuoteUsername === newUsername) {
+            https.get("https://api.mojang.com/users/profiles/minecraft/" + username, (res) => {
+                var body = '';
+                res.on('data', (chunk) => {
+                    body += chunk;
+                });
+                res.on('end', () => {
+                    if (res.statusCode === 200) {
+                        callback(JSON.parse(body).name); //Use mojang username as entry
+                    } else {channel.send("This is not a valid username or this username does not exist!");}
+                });
+            });
+        } else {channel.send("Your username cannot contain any special characters except `_`");}
+    } else {channel.send("Your username cannot be longer then 16 characters!");}
+}
+
 module.exports = {
 
     getUserOrUsername: (argument,channel,callbackUser,callbackUsername) => {
         if (!argument) return;
         if (argument.startsWith('<@') && argument.endsWith('>')) {
-            mention = mention.slice(2, -1);
-            if (mention.startsWith('!')) {
-                mention = mention.slice(1);
+            argument = argument.slice(2, -1);
+            if (argument.startsWith('!')) {
+                argument = argument.slice(1);
             }
-            if (!mention.startsWith('&')) {
-                callbackUser(mention);
+            if (!argument.startsWith('&')) {
+                callbackUser(argument);
             } else {
                 channel.send("A role tag was passed instead of a user tag!");
             }
@@ -18,6 +38,8 @@ module.exports = {
             parseUsername(argument,channel,callbackUsername);
         }
     },
+  
+    parseUsername,
 
     getUserFromMention: (mention) => {
         if (!mention) return null;
@@ -30,26 +52,6 @@ module.exports = {
             return mention;
         }
         return null;
-    },
-
-    parseUsername: (username, channel, callback) => {
-        if (username.length <= 16) {
-            var removeQuoteUsername = username.replace(/^"|"$/g, '');
-            var newUsername = removeQuoteUsername.replace(/[^\w\s_]/gi,'');
-            if (removeQuoteUsername === newUsername) {
-                https.get("https://api.mojang.com/users/profiles/minecraft/" + username, (res) => {
-                    var body = '';
-                    res.on('data', (chunk) => {
-                        body += chunk;
-                    });
-                    res.on('end', () => {
-                        if (res.statusCode === 200) {
-                            callback(JSON.parse(body).name); //Use mojang username as entry
-                        } else {channel.send("This is not a valid username or this username does not exist!");}
-                    });
-                });
-            } else {channel.send("Your username cannot contain any special characters except `_`");}
-        } else {channel.send("Your username cannot be longer then 16 characters!");}
     },
 
     usernameToUUID: (username, callback) => {

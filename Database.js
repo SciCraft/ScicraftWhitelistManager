@@ -83,7 +83,7 @@ function init() {
  * @returns {number} - Amount of accounts that are active
  */
  function countActiveAccounts(discordId,callback) {
-	db.all("SELECT DiscordId,Active FROM whitelist WHERE DiscordId = ? AND Active == true", [discordId.toString()], (err, rows) => {
+	db.all("SELECT DiscordId,Active FROM whitelist WHERE DiscordId = ? AND Active == True", [discordId.toString()], (err, rows) => {
 		if (err) {console.error(err.message);}
         callback(typeof rows == "undefined" ? 0 : rows.length);
 	});
@@ -95,7 +95,7 @@ function init() {
  * @returns {array[]} - Array of minecraft usernames (row)
  */
  function getActiveUsernames(discordId,callback) {
-	db.all("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND Active == true", [discordId.toString()], (err, rows) => {
+	db.all("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND Active == True", [discordId.toString()], (err, rows) => {
 		if (err) {console.error(err.message);}
         callback(typeof rows == "undefined" ? [] : rows.map(a => a.McUsername));
 	});
@@ -213,6 +213,21 @@ function setActive(active,username) {
 }
 
 /**
+ * Change the active state of a single minecraft username (if active false, they are unwhitelisted)
+ * @param {boolean} active - If should be set to active or not
+ * @param {string} username - The minecraft username of the user
+ */
+ function setActiveCallback(active,username,callback) {
+    db.run("UPDATE whitelist set Active = ? WHERE McUsername = ?;", [active,username], (err) => {
+        if (err) { console.error(err.message);}
+        if (options.verbose) {
+            console.log(`The account: ${username} has been ${active ? 'activated' : 'deactivated'}`);
+        }
+        callback();
+    });
+}
+
+/**
  * Get the active state of a single minecraft username
  * @param {string} username - The minecraft username of the user
  * @returns {boolean} - Returns true if the username is active
@@ -232,7 +247,7 @@ function getActive(username, callback) {
  * @param {boolean} quietly - If it should be done quietly
  */
 function addWaiting(action,username,server,quietly,callback) {
-	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == true COLLATE NOCASE;", [username], (err, row) => {
+	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		var waiting;
 		if (typeof row != "undefined") {
@@ -276,7 +291,7 @@ function addWaiting(action,username,server,quietly,callback) {
 		if (typeof row != "undefined") {
             var currentWaiting = JSON.parse(row.Waiting);
 		    var waiting = JSON.stringify(typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : []);
-            db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ? LIMIT 1", [waiting,username], (err) => {
+            db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ?", [waiting,username], (err) => {
 			    if (err) { console.error(err.message);}
                 if (options.verbose) {
 			        console.log(`Removed Waiting for username: ${username}, on server: ${server}`);
@@ -295,7 +310,7 @@ function addWaiting(action,username,server,quietly,callback) {
  * @returns {Array[]} - Returns an array of arrays, the inner array contains [number,string,string]
  */
 function getWaiting(username, callback) {
-	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == true COLLATE NOCASE;", [username], (err, row) => {
+	db.get("SELECT McUsername,Waiting,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		callback(typeof row != "undefined" ? JSON.parse(row.Waiting) : []);
 	});
@@ -323,15 +338,13 @@ function forEachWaiting(callback) {
  * @param {string} server - The server to add
  */
  function addServer(username,server, callback) {
-	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == true COLLATE NOCASE;", [username], (err, row) => {
+	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		var servers;
 		if (typeof row != "undefined") {
             if (row.Servers != null) {
                 var serverArray = JSON.parse(row.Servers);
-                if (serverArray.includes(server)) { //prevent duplicates
-                    servers = null;
-                } else {
+                if (!serverArray.includes(server)) { //prevent duplicates
                     serverArray.push(server)
 				    servers = JSON.stringify(serverArray);
                 }
@@ -382,7 +395,7 @@ function forEachWaiting(callback) {
  * @returns {string[]} - Returns an array of servers (string)
  */
 function getServers(username,callback) {
-	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == true COLLATE NOCASE;", [username], (err, row) => {
+	db.get("SELECT McUsername,Servers,Active FROM whitelist WHERE McUsername = ? AND Active == True COLLATE NOCASE;", [username], (err, row) => {
 		if (err) { console.error(err.message);}
 		callback(typeof row != "undefined" ? JSON.parse(row.Servers) : []);
 	});
@@ -407,7 +420,7 @@ function getServers(username,callback) {
  * @returns {string[]} - Returns an array of minecraft usernames to remove (string)
  */
 function getAccountsOverLimit(discordId,removeAmt,callback) {
-    db.all("SELECT DiscordId,McUsername,Active,Added FROM whitelist WHERE DiscordId = ? AND Active == true ORDER BY Added DESC LIMIT ?",[discordId.toString(),removeAmt], (err, rows) => {
+    db.all("SELECT DiscordId,McUsername,Active,Added FROM whitelist WHERE DiscordId = ? AND Active == True ORDER BY Added DESC LIMIT ?",[discordId.toString(),removeAmt], (err, rows) => {
         if (err) { console.error(err.message);}
         callback(typeof row == "undefined" ? [] : rows.map(a => a.McUsername));
     });
@@ -430,6 +443,7 @@ module.exports = {
     isMcUsernameAvailable,
     getWaiting,
     setActive,
+    setActiveCallback,
     getActive,
     addWaiting,
     removeWaiting,

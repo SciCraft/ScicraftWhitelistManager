@@ -6,7 +6,7 @@ const jsTest = /\.js$/;
 var doc;
 try {
     doc = yaml.load(fs.readFileSync('./config.yaml', 'utf8'));
-    console.log(doc);
+    //console.log(doc);
 } catch (e) {
     console.log(e);
 }
@@ -19,7 +19,7 @@ const servers = config.servers || [];
 
 
 //const patreonRole = config.patreonRole || 0;
-const method = config.method || "bot";
+const method = config.method.toLowerCase() || "bot";
 const adminRole = config.adminRole || 0;
 const jsonRoles = config.roles || {};
 const whitelistLog = config.whitelistLog || null;
@@ -30,22 +30,22 @@ const guildId = config.guildId || 0;
 const config_commands = config.commands || {};
 
 const options = {
-    verbose : config.options.verbose || false,
-    debugMode : config.options.debugMode || false,
-    ReWhitelistAutomatically: config.options.ReWhitelistAutomatically || false,
-    WhitelistAutomaticallyQuietly: config.options.WhitelistAutomaticallyQuietly || false,
+    verbose : (config.options.verbose == null ? false : config.options.verbose),
+    debugMode : (config.options.debugMode == null ? false : config.options.debugMode),
+    ReWhitelistAutomatically: (config.options.ReWhitelistAutomatically == null ? false : config.options.ReWhitelistAutomatically),
+    WhitelistAutomaticallyQuietly: (config.options.WhitelistAutomaticallyQuietly == null ? false : config.options.WhitelistAutomaticallyQuietly),
     joiningExecutionDelay: config.options.joiningExecutionDelay || 500,
     exitingExecutionDelay: config.options.exitingExecutionDelay || 1000,
-    disableRoleChangeChecks: config.options.disableRoleChangeChecks || false,
-    ownerIsAnAdmin: config.options.ownerIsAnAdmin || true,
-    sendMessageOnStartup: config.options.sendMessageOnStartup || true
+    disableRoleChangeChecks: (config.options.disableRoleChangeChecks == null ? false : config.options.disableRoleChangeChecks),
+    ownerIsAnAdmin: (config.options.ownerIsAnAdmin == null ? true : config.options.ownerIsAnAdmin),
+    sendMessageOnStartup: (config.options.sendMessageOnStartup == null ? true : config.options.sendMessageOnStartup)
 };
 
 //Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
 
 
 const bot_email = config.bot.email || process.env.SECRET_EMAIL || "";
-const bot_password = config.bot.password || process.env.SECRET_PASSWORD || "";
+const password = config.bot.password || process.env.SECRET_PASSWORD || "";
 
 const serverCount = Object.keys(servers).length;
 
@@ -55,7 +55,7 @@ const Actions = config.actions || {}; //Actions to run
 
 //Make sure all the absolutly needed values are set. To make sure they not null (unfortunatly I have to do this cause idiots exist)
 Actions.Whitelist = {
-    log: Actions.Whitelist.log || true,
+    log: (Actions.Whitelist.log == null ? true : Actions.Whitelist.log),
     cmd: Actions.Whitelist.cmd || "/whitelist add %s",
     msg: Actions.Whitelist.msg || "Added: %s to the whitelist",
     col: Actions.Whitelist.col || "#00DD00",
@@ -63,7 +63,7 @@ Actions.Whitelist = {
     entry:"addServer"
 };
 Actions.Unwhitelist = {
-    log: Actions.Unwhitelist.log || true,
+    log: (Actions.Unwhitelist.log == null ? true : Actions.Unwhitelist.log),
     cmd: Actions.Unwhitelist.cmd || "/whitelist remove %s",
     msg: Actions.Unwhitelist.msg || "Removed: %s from the whitelist",
     col: Actions.Unwhitelist.col || "#DD0000",
@@ -71,35 +71,35 @@ Actions.Unwhitelist = {
     entry:"removeServer"
 };
 Actions.Kick = {
-    log: Actions.Kick.log || false,
+    log: (Actions.Kick.log == null ? false : Actions.Kick.log),
     cmd: Actions.Kick.cmd || "/kick %s",
     msg: Actions.Kick.msg || "Kicked: %s",
     col: Actions.Kick.col || "#880000",
     inf: Actions.Kick.inf || "was kicked on"
 };
 Actions.Ban = {
-    log: Actions.Ban.log || true,
+    log: (Actions.Ban.log == null ? true : Actions.Ban.log),
     cmd: Actions.Ban.cmd || "/ban %s",
     msg: Actions.Ban.msg || "Banned: %s",
     col: Actions.Ban.col || "#FF0000",
     inf: Actions.Ban.inf || "was banned on"
 };
 Actions.Pardon = {
-    log: Actions.Pardon.log || true,
+    log: (Actions.Pardon.log == null ? true : Actions.Pardon.log),
     cmd: Actions.Pardon.cmd || "/pardon %s",
     msg: Actions.Pardon.msg || "Pardoned: %s",
     col: Actions.Pardon.col || "#00FF00",
     inf: Actions.Pardon.inf || "was pardoned on"
 };
 Actions.Op = {
-    log: Actions.Op.log || true,
+    log: (Actions.Op.log == null ? true : Actions.Oplog),
     cmd: Actions.Op.cmd || "/op %s",
     msg: Actions.Op.msg || "Opped: %s",
     col: Actions.Op.col || "#8A2BE2",
     inf: Actions.Op.inf || "was opped on"
 };
 Actions.Custom = {
-    log: Actions.Custom.log || false,
+    log: (Actions.Custom.log == null ? false : Actions.Custom.log),
     cmd: Actions.Custom.cmd,
     msg: Actions.Custom.msg,
     col: Actions.Custom.col || "#2222EE",
@@ -129,10 +129,10 @@ commandList.forEach((name, _) => {
         if (config_commands.hasOwnProperty(name) && !commands[name]) {
             commands[name] = {
                 require: config_commands[name].require || "",
-                adminOnly: config_commands[name].adminOnly || false,
+                adminOnly: (config_commands[name].adminOnly == null ? false : config_commands[name].adminOnly),
                 description: config_commands[name].description || "",
                 usage: config_commands[name].usage || "",
-                enabled: config_commands[name].enabled || true
+                enabled: (config_commands[name].enabled == null ? true : config_commands[name].enabled)
             }
         }
     }
@@ -145,10 +145,10 @@ let cmdManager = {
     addCommand: (name,data) => {
         commands[name] = {
             require: data.require || "",
-            adminOnly: data.adminOnly || false,
+            adminOnly: (data.adminOnly == null ? false : data.adminOnly),
             description: data.description || "",
             usage: data.usage || "",
-            enabled: data.enabled || true,
+            enabled: (data.enabled == null ? true : data.enabled),
             func: data.run,
             argumentAmt: data.argumentAmt || {min:0,max:0}
         }
@@ -173,6 +173,10 @@ var customActionQueue = []; // Server: [Action, Username, Command, Silent]
 
 var whitelistLogCache = []; // username: [action, msgRef, time]
 
+function warnMissingIp() {
+  console.error("A server does not have an IP assigned to it!");
+}
+
 Object.keys(servers).forEach((serverName, _) => {
     if (servers[serverName].ip == null || servers[serverName].ip == "") {
         delete servers[serverName];
@@ -180,9 +184,9 @@ Object.keys(servers).forEach((serverName, _) => {
     } else {
         servers[serverName] = {
             ip: servers[serverName].ip || warnMissingIp(),
-            isCreative: servers[serverName].isCreative || false,
-            shouldOp: servers[serverName].shouldOp || false,
-            opRole: servers[serverName].opRole || null
+            isCreative: (servers[serverName].isCreative == null ? false : servers[serverName].isCreative),
+            shouldOp: (servers[serverName].shouldOp == null ? false : servers[serverName].shouldOp),
+            opRole: servers[serverName].opRole
         };
         actionQueue[serverName] = [];
         customActionQueue[serverName] = [];
@@ -211,14 +215,14 @@ function scheduleAction(action, server, username, silent) {
 }
 
 function shouldLogAction(action) {
-    return Actions[action] != null ? Actions[action].log : false;
+    return Actions[action] == null ? false : Actions[action].log;
 }
 
 function createLog(discordClient, user, username, action) {
 	if (whitelistLog && shouldLogAction(action)) {
 		var description, color = "";
         if (Actions[action] != null) {
-            descrition = Actions[action].inf || "";
+            description = Actions[action].inf || "";
             color = Actions[action].col || "#000000";
         }
 		const logEmbed = new Discord.MessageEmbed().setColor(color).setTitle(username).setDescription(description);
@@ -290,4 +294,4 @@ function updateLog() {
 }
 
 
-module.exports = { prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, bot_password, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };
+module.exports = { prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };

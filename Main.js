@@ -20,7 +20,20 @@ const Config = require("./Config");
 const Database = require("./Database");
 Database.init();
 
-var GuildOwner = null;
+let GuildOwner = null;
+
+/*let client = mc.createClient({
+    username: Config.bot_email, // The Email
+    //password: Config.password, // The Password
+    auth: "microsoft", // The Auth Type
+    version: false, // Automatic Version Detection
+    hideErrors: true //Can cause crash
+});*/
+let client = null;
+let clientReady = true;
+let curentServer = "";
+let countServers = 0;
+let databaseEntryList = []; // [entry (ServerAction), username (string), serverName (string)]
 
 //Add commands
 Config.cmdManager.getCommandList().forEach((key, _) => {
@@ -39,11 +52,11 @@ function isOwnerAndAdmin(discordId) {
 }
 
 var rconServers = [];
-if (Config.method.toLowerCase() == "rcon") {
+if (Config.method == "rcon") {
 	Object.keys(Config.servers).forEach((serverName, _) => {
 		rconServers[serverName] = new RCON();
 		var address = Config.servers[serverName].ip.split(":");
-		rconServers[serverName].connect(address[0], address[1], password).catch(error => { console.error(`An error occured: ${error}`);});
+		rconServers[serverName].connect(address[0], address[1], Config.password).catch(error => { console.error(`An error occured: ${error}`);});
 	});
 }
 
@@ -105,24 +118,24 @@ const ServerAction = {
     removeWaiting: 3
 }
 
-function updateDatabaseEntries(databaseEntryList) {
-    var item = databaseEntryList.shift();
+function updateDatabaseEntries(databaseEntryListt) {
+    var item = databaseEntryListt.shift();
     if (item != undefined && item != null) {
         if (item.entry == ServerAction.addServer) {
             Database.addServer(item.username,item.server,() => {
-                updateDatabaseEntries(databaseEntryList);
+                updateDatabaseEntries(databaseEntryListt);
             });
         } else if (item.entry == ServerAction.removeServer) {
             Database.removeServer(item.username,item.server,() => {
-                updateDatabaseEntries(databaseEntryList);
+                updateDatabaseEntries(databaseEntryListt);
             });
         } else if (item.entry == ServerAction.addWaiting) {
-            Database.addWaiting(item.data,item.username,item.server,() => {
-                updateDatabaseEntries(databaseEntryList);
+            Database.addWaiting(item.data,item.username,item.server,item.silent,() => {
+                updateDatabaseEntries(databaseEntryListt);
             });
         } else if (item.entry == ServerAction.removeWaiting) {
-            Database.removeWaiting(item.data,item.username,item.server,() => {
-                updateDatabaseEntries(databaseEntryList);
+            Database.removeWaiting(item.data,item.username,item.server,item.silent,() => {
+                updateDatabaseEntries(databaseEntryListt);
             });
         }
     }
@@ -133,13 +146,27 @@ function updateDatabaseEntries(databaseEntryList) {
  * Attempt to run all commands in Queue
  */
 async function runCommands() { //Needs another rewrite xD
-    var countServers = 0;
-    var databaseEntryList = []; // [entry (ServerAction), username (string), serverName (string)]
+    countServers = 0;
+    databaseEntryList = []; // [entry (ServerAction), username (string), serverName (string)]
     Object.keys(Config.servers).forEach((serverName, _) => {
         var serverActions = Config.actionQueue[serverName];
         var customServerActions = Config.customActionQueue[serverName];
         if (Config.options.debugMode) { //debugging without needing the bot
             if (serverActions.length > 0 || customServerActions.length > 0) {
+                if (false) { // Test Waiting
+                    if (Config.options.verbose) {
+                        console.log(`${serverName} - Server Down!`);
+                    }
+                    while(serverActions.length > 0) {
+                        let action = serverActions.pop();
+                        databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action,silent:(action.silent == null) ? false : action.silent});
+                    }
+                    //Custom commands do not get saved to run later - Add a message to user later (although why are they executing commands on a server that's offline?)
+                    customServerActions = [];
+                    if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                        updateDatabaseEntries(databaseEntryList);
+                    }
+                }
                 setTimeout(() => {
                     while(serverActions.length > 0) {
                         let action = serverActions.pop();
@@ -176,13 +203,11 @@ async function runCommands() { //Needs another rewrite xD
                     updateDatabaseEntries(databaseEntryList);
                 }
             }
-        } else {
-            if (Config.method.toLowerCase() == "bot") {
+        } else if (clientReady) {
+            if (Config.method == "bot") {
                 if (serverActions.length > 0 || customServerActions.length > 0) {
-                    var address = Config.servers[serverName].ip.split(":");
-                    if (typeof address[1] == "undefined" || address[1] == null) {
-                        address[1] == "25565";
-                    } // If its an url with no port, use default
+                    let address = Config.servers[serverName].ip.split(":");
+                    if (typeof address[1] == "undefined" || address[1] == null) {address[1] == "25565";} // If its an url with no port, use default
                     mc.ping({host: address[0],port: parseInt(address[1])}, (err, _) => {
                         if (err) { // If server is down, we add it to that players waiting list
                             if (Config.options.verbose) {
@@ -190,60 +215,72 @@ async function runCommands() { //Needs another rewrite xD
                             }
                             while(serverActions.length > 0) {
                                 let action = serverActions.pop();
-                                databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action});
+                                databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action,silent:action.silent});
                             }
                             //Custom commands do not get saved to run later - Add a message to user later (although why are they executing commands on a server that's offline?)
                             customServerActions = [];
                             if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
                                 updateDatabaseEntries(databaseEntryList);
                             }
-                        } else {
-                            var client = mc.createClient({
-                                host: address[0], // The Host
-                                port: parseInt(address[1]), // The Port
-                                username: Config.bot_email, // The Email
-                                password: Config.bot_password, // The Password
-                                auth: "mojang", // The Auth Type
-                                version: false, // Automatic Version Detection
-                                hideErrors: true //Can cause crash
-                            });
-                            client.on("login", _ => { //Only executes command after having connected for atleast 500ms, to make sure player is fully loaded
-                                setTimeout(() => {
-                                    while(serverActions.length > 0) {
-                                        let action = serverActions.pop();
-                                        if (Config.Actions[action.action] != null) {
-                                            var theAction = Config.Actions[action.action];
-                                            var cmd = util.format(theAction.cmd, action.username);
-                                            client.write("chat", {message: cmd});
-                                            if (Config.options.verbose) {
-                                                console.log(`${serverName} - ${cmd}`);
+                        } else if (clientReady) {
+                            clientReady = false;
+                            curentServer = serverName;
+                                let options = {
+                                    host:address[0],
+                                    port:address[1],
+                                    username: Config.bot_email,
+                                    password: Config.password,
+                                    auth: "microsoft", // The Auth Type
+                                    version: false, // Automatic Version Detection
+                                    hideErrors: true //Can cause crash
+                                };
+                                client = mc.createClient(options);
+                                client.on("login", _ => { //Only executes command after having connected for atleast 500ms, to make sure player is fully loaded
+                                        setTimeout(() => {
+                                            var serverActions = Config.actionQueue[curentServer];
+                                            var customServerActions = Config.customActionQueue[curentServer];
+                                            while(serverActions.length > 0) {
+                                                let action = serverActions.pop();
+                                                if (Config.Actions[action.action] != null) {
+                                                    var theAction = Config.Actions[action.action];
+                                                    var cmd = util.format(theAction.cmd, action.username);
+                                                    client.write("chat", {message: cmd});
+                                                    if (Config.options.verbose) {
+                                                        console.log(`${curentServer} - ${cmd}`);
+                                                    }
+                                                    if (!action.silent) client.write("chat", {message: util.format(theAction.msg, action.username)});
+                                                    Config.modifyLog(discordClient,action,curentServer);
+                                                    if (theAction.entry != null && ServerAction[theAction.entry] != null) {
+                                                        databaseEntryList.push({entry:ServerAction[theAction.entry],username:action.username,server:curentServer});
+                                                    }
+                                                }
                                             }
-                                            if (!action.silent) client.write("chat", {message: util.format(theAction.msg, action.username)});
-                                            Config.modifyLog(discordClient,action,serverName);
-                                            if (theAction.entry != null && ServerAction[theAction.entry] != null) {
-                                                databaseEntryList.push({entry:ServerAction[theAction.entry],username:action.username,server:serverName});
+                                            while(customServerActions.length > 0) {
+                                                let action = customServerActions.pop();
+                                                if (Config.Actions[action.action] != null) {
+                                                    var theAction = Config.Actions[action.action];
+                                                    client.write("chat", {message: action.command});
+                                                    if (Config.options.verbose) {
+                                                        console.log(`${curentServer} - ${action.command}`);
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                    while(customServerActions.length > 0) {
-                                        let action = customServerActions.pop();
-                                        if (Config.Actions[action.action] != null) {
-                                            var theAction = Config.Actions[action.action];
-                                            client.write("chat", {message: action.command});
-                                            if (Config.options.verbose) {
-                                                console.log(`${serverName} - ${action.command}`);
+                                            if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                                                updateDatabaseEntries(databaseEntryList);
                                             }
-                                            //Config.modifyLog(discordClient,action,serverName);
-                                        }
-                                    }
-                                    if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
-                                        updateDatabaseEntries(databaseEntryList);
-                                    }
-                                    setTimeout(() => {
-                                        client.end();
-                                    }, Config.options.exitingExecutionDelay); //delay the bot exiting the server to make sure command makes it. Rare cases can cause issues which this prevents
-                                }, Config.options.joiningExecutionDelay);
-                            });
+                                            setTimeout(() => {
+                                                client.write('disconnect');
+                                            }, Config.options.exitingExecutionDelay); //delay the bot exiting the server to make sure command makes it. Rare cases can cause issues which this prevents
+                                        }, Config.options.joiningExecutionDelay);
+                                });
+                                client.on('disconnect', function (packet) {
+                                    clientReady = true;
+                                    runCommands();
+                                });
+                                client.on('error', function (err) {
+                                    clientReady = true;
+                                    runCommands();
+                                });
                         }
                     });
                 } else {
@@ -251,7 +288,7 @@ async function runCommands() { //Needs another rewrite xD
                         updateDatabaseEntries(databaseEntryList);
                     }
                 }
-            } else if (Config.method.toLowerCase() == "rcon") {
+            } else if (Config.method == "rcon") {
                 if (rconServers[serverName] != null) {
                     var address = Config.servers[serverName].ip.split(":");
                     if (typeof address[1] == "undefined" || address[1] == null) {address[1] == "25565";}
@@ -454,7 +491,9 @@ function onMemberChange(newMember, oldHighestRole,newHighestRole) {
                         Config.jsonRoles[newHighestRole].servers.forEach((serverName,_) => { //Send commands to all servers for role
                             Config.scheduleAction(Config.Actions.Whitelist.id,serverName, username, Config.options.WhitelistAutomaticallyQuietly); //Send commands to servers
                         });
-                        Config.setupLog(discordClient, newMember, username, Config.Actions.Whitelist.id); //setup a log for this event
+                        Database.setActiveCallback(true,username,() => {
+                            Config.setupLog(discordClient, newMember, username, Config.Actions.Whitelist.id); //setup a log for this event
+                        });
                     });
                 });
             }
@@ -469,25 +508,29 @@ discordClient.on("guildMemberUpdate",(oldMember,newMember) => {
 
 discordClient.on("guildMemberRemove", (member) => {
     onMemberChange(member,getHighestRole(member.id),null);
-    removeHighestRole(member.id); //Don't wanna loop through people who are not here
+    Database.removeHighestRole(member.id); //Don't wanna loop through people who are not here
 });
 
 function roleCheck() {
     Database.forEachHighestRole(obj => {
         if (Config.guildId != 0) {
-            discordClient.guilds.cache.get(Config.guildId).members.fetch(obj.DiscordId).then(member => {
-                onMemberChange(member,obj.HighestRole,getHighestRole(member));
-            }).catch(console.warn);
+          let guild = discordClient.guilds.cache.get(Config.guildId);
+            if (guild.member(obj.DiscordId)) {
+              guild.members.fetch(obj.DiscordId).then(member => {
+                  onMemberChange(member,obj.HighestRole,getHighestRole(member));
+              }).catch(console.log);
+            }
         }
     });
 }
 
 function pingEveryHour() {
-    var serverStatusCache = []; //{boolean[]}
+    let serverStatusCache = []; //{boolean[]}
     Database.forEachWaiting((username,obj) => { //obj = [action,server,quietly]
-        if (Config.options.debugMode || serverStatusCache[obj[1]] != null) { //already been cached
-            if (Config.options.debugMode || serverStatusCache[obj[1]]) { //If server online
-                Config.scheduleAction(obj[0], obj[1], username, obj[2]); //Send commands to servers
+        let server = obj[1];
+        if (Config.options.debugMode || serverStatusCache[server] != null) { //already been cached
+            if (Config.options.debugMode || serverStatusCache[server]) { //If server online
+                Config.scheduleAction(obj[0], server, username, obj[2]); //Send commands to servers
                 Config.setupLog(discordClient, null, username, Config.Actions.Whitelist.id); //setup a log for this event
             }
         } else if (Config.servers[server] != null) { //cache it
@@ -498,7 +541,7 @@ function pingEveryHour() {
                     serverStatusCache[server] = false;
                 } else {
                     serverStatusCache[server] = true;
-                    Config.scheduleAction(obj[0], obj[1], username, obj[2]); //Send commands to servers
+                    Config.scheduleAction(obj[0], server, username, obj[2]); //Send commands to servers
                     Config.setupLog(discordClient, null, username, Config.Actions.Whitelist.id); //setup a log for this event
                 }
             });

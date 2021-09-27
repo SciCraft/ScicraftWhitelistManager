@@ -10,7 +10,7 @@
   "dependencies": {
     "discord.js": "^12.5.3",
     "js-yaml": "^4.1.0",
-    "minecraft-protocol": "^1.22.0",
+    "minecraft-protocol": "^1.26.5",
     "mojang-api": "^0.0.2",
     "sqlite3": "^5.0.2",
     "yggdrasil": "^1.5.2"
