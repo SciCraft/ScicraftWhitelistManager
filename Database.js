@@ -1,8 +1,8 @@
 const logger = require("./Logger");
-const {Actions} = require("./Config");
+const {Actions,files} = require("./Config");
 
 const sqlite3 = require("sqlite3").verbose();
-let db = new sqlite3.Database("whitelist.sqlite3", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, err => {
+let db = new sqlite3.Database(files.database, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, err => {
 	if (err) { logger.error(err.message); }
     logger.log('verbose',"Connected to the whitelist database.");
 });

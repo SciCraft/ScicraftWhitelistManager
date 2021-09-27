@@ -1,3 +1,5 @@
 node_modules
 about.txt
 whitelist.sqlite3
+insertData.js
+whitelist.sql

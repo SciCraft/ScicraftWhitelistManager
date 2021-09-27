@@ -248,6 +248,9 @@ bot:
   email:
   password:
   type: microsoft
+files:
+  database: whitelist.sqlite3
+  commands: ./commands
 guildId: '889981422570459206'
 adminRole: '889983267258925097'
 botTestingChannel: '889984919831457873'

@@ -61,7 +61,7 @@ let databaseEntryList = []; // [entry (ServerAction), username (string), serverN
 
 //Add commands
 Config.cmdManager.getCommandList().forEach((key, _) => {
-  Config.cmdManager.setFunction(key,require(`./commands/${key}`));
+  Config.cmdManager.setFunction(key,require(`${Config.files.commands}/${key}`));
 });
 
 //Manually Added Commands

@@ -6,7 +6,7 @@ const jsTest = /\.js$/;
 
 let doc;
 try {
-    doc = yaml.load(fs.readFileSync('./config.yaml', 'utf8'));
+    doc = yaml.load(fs.readFileSync('./config/config.yaml', 'utf8'));
 } catch (e) {
     logger.error(e);
 }
@@ -40,6 +40,11 @@ const options = {
     ownerIsAnAdmin: (config.options.ownerIsAnAdmin == null ? true : config.options.ownerIsAnAdmin),
     sendMessageOnStartup: (config.options.sendMessageOnStartup == null ? true : config.options.sendMessageOnStartup)
 };
+
+const files = {
+    database: config.options.database || "whitelist.sqlite3",
+    commands: config.options.commands || "./commands"
+}
 
 //Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
 
@@ -116,7 +121,7 @@ Object.keys(Actions).forEach((actionName, _) => { //Set action id's
 let commandList = [];
 
 try {
-    commandList = fs.readdirSync("./commands");
+    commandList = fs.readdirSync(files.commands);
 } catch(e) {
     logger.warn(e);
 }
@@ -290,4 +295,4 @@ function updateLog() {
 }
 
 
-module.exports = { prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, bot_type, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };
+module.exports = { files, prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, bot_type, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };
