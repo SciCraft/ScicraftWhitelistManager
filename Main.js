@@ -272,6 +272,15 @@ async function runCommands() { //Needs another rewrite xD
                                     }
                                     setTimeout(() => {
                                         client.write('disconnect');
+                                        if (Config.bot_type == "microsoft") {
+                                            setTimeout(() => {
+                                                clientReady = true;
+                                                runCommands();
+                                            },Config.bot_microsoft_delay);
+                                        } else {
+                                            clientReady = true;
+                                            runCommands();
+                                        }
                                     }, Config.options.exitingExecutionDelay); //delay the bot exiting the server to make sure command makes it. Rare cases can cause issues which this prevents
                                 }, Config.options.joiningExecutionDelay);
                             });

@@ -48,7 +48,8 @@ const files = {
 
 const bot_email = config.bot.email || process.env.SECRET_EMAIL || "";
 const password = config.bot.password || process.env.SECRET_PASSWORD || "";
-const bot_type = config.bot.type || "mojang";
+const bot_type = config.bot.type.toLowerCase() || "mojang";
+const bot_microsoft_delay = config.bot.satisfyShitMicrosoftAuthUsingDelay || 12000;
 
 const serverCount = Object.keys(servers).length;
 
@@ -292,4 +293,31 @@ function updateLog() {
 }
 
 
-module.exports = { files, prefix, method, servers, adminRole, jsonRoles, cmdManager, whitelistLog, botTestingChannel, bot_email, password, bot_type, Actions, scheduleAction, scheduleCustomAction, actionQueue, customActionQueue, setupLog, updateLog, modifyLog, modifyWaitingLog, guildId, serverCount, options, TOKEN };
+module.exports = {
+    files,
+    prefix,
+    method,
+    servers,
+    adminRole,
+    jsonRoles,
+    cmdManager,
+    whitelistLog,
+    botTestingChannel,
+    bot_email,
+    password,
+    bot_type,
+    bot_microsoft_delay,
+    Actions,
+    scheduleAction,
+    scheduleCustomAction,
+    actionQueue,
+    customActionQueue,
+    setupLog,
+    updateLog,
+    modifyLog,
+    modifyWaitingLog,
+    guildId,
+    serverCount,
+    options,
+    TOKEN
+};

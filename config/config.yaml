@@ -1,7 +1,7 @@
 ---
 token:
 prefix: "&"
-method: bot
+method: bot                             # bot or rcon
 servers:
   scicraft_Snapshit:
     ip: 127.0.0.1:25565
@@ -194,15 +194,15 @@ commands:
     usage: admin {reload|shutdown}
     enabled: false
 options:
-  verbose: true
-  debugMode: true
-  ReWhitelistAutomatically: true
-  WhitelistAutomaticallyQuietly: false
-  joiningExecutionDelay: 500
-  exitingExecutionDelay: 1000
-  disableRoleChangeChecks: false
-  ownerIsAnAdmin: false
-  sendMessageOnStartup: true
+  verbose: true                                # If the bot should be more vocal about what its doing
+  debugMode: true                              # debugMod is for development use, it will skip using the actual bot and simulate it
+  ReWhitelistAutomatically: true               # If the bot should automatically re-whitelist accounts that where previously registered
+  WhitelistAutomaticallyQuietly: false         # If Automatic whitelisting should be done quietly
+  joiningExecutionDelay: 500                   # The amount of time that the bot should wait after connecting to a server before sending commands
+  exitingExecutionDelay: 1000                  # The amount of time that the bot should wait in milliseconds before leaving a server
+  disableRoleChangeChecks: false               # If the bot shouldn't care about Role changes
+  ownerIsAnAdmin: false                        # If the owner should automatically be an Admin, so you don't need an admin role
+  sendMessageOnStartup: true                   # If the bot should send a message in the Whitelist Log channel when it starts
 actions:
   Whitelist:
     log: true
@@ -245,13 +245,14 @@ actions:
     col: "#2222EE"
     inf: did custom operation on
 bot:
-  email:
-  password:
-  type: microsoft
+  email:                                       # The email for the bot account. Can also use enviroment variable: SECRET_EMAIL
+  password:                                    # The password for the bot account. Can also use enviroment variable: SECRET_PASSWORD
+  type: microsoft                              # mojang or microsoft
+  satisfyShitMicrosoftAuthUsingDelay: 12000    # Time in milliseconds between client logging in & out of servers. Due to Microsoft auth being limited. Default 12 sec (yes, its that bad)
 files:
-  database: whitelist.sqlite3
-  commands: ./commands
-guildId: '889981422570459206'
-adminRole: '889983267258925097'
-botTestingChannel: '889984919831457873'
-whitelistLog: '889984973464027177'
+  database: whitelist.sqlite3                  # The location of the Database File
+  commands: ./commands                         # The location of the commands folder
+guildId: '889981422570459206'                  # The id of the guild this bot will be running in
+adminRole: '889983267258925097'                # The id of the admin role for this guild
+botTestingChannel: '889984919831457873'        # The id of the bot testing channel
+whitelistLog: '889984973464027177'             # The id of the whitelist logging channel
