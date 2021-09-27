@@ -22,7 +22,8 @@ configure({ //Must be done through configure so the default loggers use them
                 }),
                 format.simple()
             ),
-            filename: 'logs/combined.log'
+            filename: 'logs/combined.log',
+            level: 'debug'
         }),
         new transports.File({
             format: format.combine(
