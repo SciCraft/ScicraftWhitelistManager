@@ -6,7 +6,7 @@ const jsTest = /\.js$/;
 
 let doc;
 try {
-    doc = yaml.load(fs.readFileSync('./config/config.yaml', 'utf8'));
+    doc = yaml.load(fs.readFileSync(process.env.SECRET_CONFIG_LOCATION || './config/config.yaml', 'utf8'));
 } catch (e) {
     logger.error(e);
 }
