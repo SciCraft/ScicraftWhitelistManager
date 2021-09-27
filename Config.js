@@ -42,8 +42,8 @@ const options = {
 };
 
 const files = {
-    database: config.options.database || "whitelist.sqlite3",
-    commands: config.options.commands || "./commands"
+    database: config.files.database || "whitelist.sqlite3",
+    commands: config.files.commands || "./commands"
 }
 
 //Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
