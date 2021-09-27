@@ -499,7 +499,7 @@ discordClient.on("guildMemberUpdate",(oldMember,newMember) => {
 });
 
 discordClient.on("guildMemberRemove", (member) => {
-    onMemberChange(member,getHighestRole(member.id),null);
+    onMemberChange(member,getHighestRole(member),null);
     Database.removeHighestRole(member.id); //Don't wanna loop through people who are not here
 });
 
