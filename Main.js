@@ -89,7 +89,7 @@ function sendHelpMsg(_, isAdmin, highestRole, user, channel, args) {
     Config.cmdManager.getCommandList().forEach((key, _) => {
         const command = Config.cmdManager.getCommand(key);
         if (!command.adminOnly || (command.adminOnly && isAdmin)) {
-            if (isAdmin || Object.keys(Config.jsonRoles).indexOf(command.require) <= highestRole) {
+            if (isAdmin || command.require == "" || Object.keys(Config.jsonRoles).indexOf(command.require) >= Object.keys(Config.jsonRoles).indexOf(highestRole)) {
                 let usage = "";
                 if (Array.isArray(command.usage)) {
                     let first = true;
