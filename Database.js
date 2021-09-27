@@ -125,9 +125,9 @@ function init() {
  * @returns {boolean} - Array of minecraft usernames
  */
 function isUsersAccount(discordId,mcusername,callback) {
-	db.get("SELECT DiscordId,McUsername,Active FROM whitelist WHERE DiscordId = ? AND McUsername = ? LIMIT 1 COLLATE NOCASE;", [discordId.toString(),mcusername], (err, row) => {
+	db.get("SELECT DiscordId,McUsername FROM whitelist WHERE DiscordId = ? AND McUsername = ? LIMIT 1 COLLATE NOCASE;", [discordId.toString(),mcusername], (err, row) => {
 		if (err) {logger.error(err.message);}
-        callback(!(typeof rows == "undefined"));
+        callback(typeof row != "undefined");
 	});
 }
 
@@ -267,6 +267,7 @@ function addWaiting(action,username,server,quietly,callback) {
             }
 		} else {
 			logger.log('verbose',"That user does not exist!!!");
+            callback();
         }
 	});
 }
@@ -281,7 +282,8 @@ function addWaiting(action,username,server,quietly,callback) {
 		if (err) { logger.error(err.message);}
 		if (typeof row != "undefined") {
             const currentWaiting = JSON.parse(row.Waiting);
-		    const waiting = JSON.stringify(typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : []);
+            const waitingArray = typeof currentWaiting == "object" ? currentWaiting.filter(obj => obj[1] != server) : [];
+		    const waiting = waitingArray.length > 0 ? JSON.stringify(waitingArray) : null;
             db.run("UPDATE whitelist set Waiting = ? WHERE McUsername = ?", [waiting,username], (err) => {
 			    if (err) { logger.error(err.message);}
                 logger.log('verbose',`Removed Waiting for username: ${username}, on server: ${server}`);
@@ -289,6 +291,7 @@ function addWaiting(action,username,server,quietly,callback) {
 		    });
 		} else {
 			logger.log('verbose',"That user does not exist!!!");
+            callback();
 		}
 	});
 }
@@ -350,6 +353,7 @@ function forEachWaiting(callback) {
             }
 		} else {
 			logger.log('verbose',"That user does not exist!!!");
+            callback();
         }
 	});
 }
@@ -364,7 +368,8 @@ function forEachWaiting(callback) {
 		if (err) { logger.error(err.message);}
 		if (typeof row != "undefined") {
             const currentServers = JSON.parse(row.Servers);
-		    const servers = JSON.stringify(currentServers.filter(val => val != server));
+            const serverArray = currentServers.filter(val => val != server);
+            const servers = serverArray.length > 0 ? JSON.stringify(serverArray) : null;
             db.run("UPDATE whitelist set Servers = ? WHERE McUsername = ?", [servers,username], (err) => {
 			    if (err) { logger.error(err.message);}
                 logger.log('verbose',`Removed Server for username: ${username}`);
@@ -372,6 +377,7 @@ function forEachWaiting(callback) {
 		    });
 		} else {
 			logger.log('verbose',"That user does not exist!!!");
+            callback();
 		}
 	});
 }

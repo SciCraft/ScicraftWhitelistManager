@@ -17,8 +17,6 @@ const Discord = require("discord.js");
 const prefix = config.prefix || "&";
 const servers = config.servers || [];
 
-
-//const patreonRole = config.patreonRole || 0;
 const method = config.method.toLowerCase() || "bot";
 const adminRole = config.adminRole || 0;
 const jsonRoles = config.roles || {};
@@ -41,13 +39,12 @@ const options = {
     sendMessageOnStartup: (config.options.sendMessageOnStartup == null ? true : config.options.sendMessageOnStartup)
 };
 
+//Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
+
 const files = {
     database: config.files.database || "whitelist.sqlite3",
     commands: config.files.commands || "./commands"
-}
-
-//Add all options that are not pre-made here. So that custom options can be used. Or Make a customOption category
-
+};
 
 const bot_email = config.bot.email || process.env.SECRET_EMAIL || "";
 const password = config.bot.password || process.env.SECRET_PASSWORD || "";

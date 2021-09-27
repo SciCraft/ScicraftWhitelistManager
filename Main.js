@@ -162,8 +162,7 @@ function updateDatabaseEntries(databaseEntryListt) {
  * Attempt to run all commands in Queue
  */
 async function runCommands() { //Needs another rewrite xD
-    countServers = 0;
-    databaseEntryList = []; // [entry (ServerAction), username (string), serverName (string)]
+    if (!clientReady) return;
     Object.keys(Config.servers).forEach((serverName, _) => {
         let serverActions = Config.actionQueue[serverName];
         let customServerActions = Config.customActionQueue[serverName];
@@ -225,8 +224,9 @@ async function runCommands() { //Needs another rewrite xD
                                 databaseEntryList.push({entry:ServerAction.addWaiting,username:action.username,server:serverName,data:action.action,silent:action.silent});
                             }
                             //Custom commands do not get saved to run later - Add a message to user later (although why are they executing commands on a server that's offline?)
-                            customServerActions = [];
-                            if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                            //customServerActions = [];
+                            if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                                countServers = 0;
                                 updateDatabaseEntries(databaseEntryList);
                             }
                         } else if (clientReady) {
@@ -266,7 +266,8 @@ async function runCommands() { //Needs another rewrite xD
                                             logger.log('verbose',`${curentServer} - ${action.command}`);
                                         }
                                     }
-                                    if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                                    if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                                        countServers = 0;
                                         updateDatabaseEntries(databaseEntryList);
                                     }
                                     setTimeout(() => {
@@ -285,7 +286,8 @@ async function runCommands() { //Needs another rewrite xD
                         }
                     });
                 } else {
-                    if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                    if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                        countServers = 0;
                         updateDatabaseEntries(databaseEntryList);
                     }
                 }
@@ -302,7 +304,8 @@ async function runCommands() { //Needs another rewrite xD
                             }
                             //Custom commands do not get saved to run later - Add a message to user later (although why are they executing commands on a server that's offline?)
                             customServerActions = [];
-                            if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                            if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                                countServers = 0;
                                 updateDatabaseEntries(databaseEntryList);
                             }
                         } else {
@@ -337,12 +340,14 @@ async function runCommands() { //Needs another rewrite xD
                                     logger.log('verbose',`${serverName} - ${action.command}`);
                                 }
                             }
-                            if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                            if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                                countServers = 0;
                                 updateDatabaseEntries(databaseEntryList);
                             }
                         }
                     });
-                } else if (++countServers == Config.serverCount && databaseEntryList.length > 0) {
+                } else if (++countServers >= Config.serverCount && databaseEntryList.length > 0) {
+                    countServers = 0;
                     updateDatabaseEntries(databaseEntryList);
                 }
             }
