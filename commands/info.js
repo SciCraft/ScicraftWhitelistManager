@@ -46,13 +46,15 @@ function sendEmbedDiscord(discordClient,mention,channel) {
 function sendEmbedUsername(discordClient,channel,row) {
     discordClient.users.fetch(row.DiscordId).then(user => {
         Utils.usernameToUUID(row.McUsername, (uuid) => {
+            const waiting = JSON.parse(row.Waiting);
+            const servers = JSON.parse(row.Servers);
             channel.send(new Discord.MessageEmbed()
                 .setColor((row.Active ? "#00EE00" : "EE0000"))
                 .setAuthor(row.McUsername,user.displayAvatarURL(),"https://discordapp.com/users/"+row.DiscordId+"/")
                 .setFooter("Added on:")
                 .setTimestamp(row.Added)
                 .setThumbnail("https://crafatar.com/avatars/"+uuid+"?overlay=true")
-                .setDescription("**Servers:** `"+JSON.parse(row.Servers).join("`,`")+"`\n"+(JSON.parse(row.Waiting) != null ? "**Waiting:** `"+JSON.parse(row.Waiting).join("`,`")+"`" : ""))
+                .setDescription((servers != null ? "**Servers:** `"+servers.join("`,`") : "")+"`\n"+(waiting != null ? "**Waiting:** `"+waiting.join("`,`")+"`" : ""))
                 .addFields(
                     { name: 'Belongs to: ', value: '<@'+(row.DiscordId || "0")+'>', inline: true },
                     { name: 'Issued by: ', value: '<@'+(row.Issuer || "0")+'>', inline: true },
