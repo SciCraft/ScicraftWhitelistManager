@@ -54,7 +54,7 @@ function sendEmbedUsername(discordClient,channel,row) {
                 .setFooter("Added on:")
                 .setTimestamp(row.Added)
                 .setThumbnail("https://crafatar.com/avatars/"+uuid+"?overlay=true")
-                .setDescription((servers != null ? "**Servers:** `"+servers.join("`,`") : "")+"`\n"+(waiting != null ? "**Waiting:** `"+waiting.join("`,`")+"`" : ""))
+                .setDescription((servers != null && servers.length > 0 ? "**Servers:** `"+servers.join("`,`") : "")+"`\n"+(waiting != null && waiting.length > 0 ? "**Waiting:** `"+waiting.join("`,`")+"`" : ""))
                 .addFields(
                     { name: 'Belongs to: ', value: '<@'+(row.DiscordId || "0")+'>', inline: true },
                     { name: 'Issued by: ', value: '<@'+(row.Issuer || "0")+'>', inline: true },
